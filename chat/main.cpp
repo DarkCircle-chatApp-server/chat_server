@@ -1,6 +1,9 @@
 #include "httplib.h"
 #include <iostream>
 
+
+int a = 20;
+
 // 채팅 관련 함수
 void handleChat(const httplib::Request& req, httplib::Response& res) {
     
