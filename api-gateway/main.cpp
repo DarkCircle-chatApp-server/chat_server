@@ -47,7 +47,7 @@ void handleTest3(const httplib::Request&, httplib::Response& res) {
     }
 }
 
-// test4 → 5003번 포트의 chat admin 호출
+// test4 → 5004번 포트의 chat admin 호출
 void handleTest4(const httplib::Request&, httplib::Response& res) {
     httplib::Client cli("http://localhost:5004");
     auto response = cli.Get("/chat/admin");
