@@ -21,9 +21,9 @@ void handleTest1(const httplib::Request&, httplib::Response& res) {
     }
 }
 
-// test2 → 5002번 포트의 signIn 호출
+// test2 → 5001번 포트의 signIn 호출
 void handleTest2(const httplib::Request&, httplib::Response& res) {
-    httplib::Client cli("http://localhost:5002");
+    httplib::Client cli("http://localhost:5001");
     auto response = cli.Get("/signIn");
     if (response) {
         res.set_content(response->body, "text/plain");
@@ -49,7 +49,7 @@ void handleTest3(const httplib::Request&, httplib::Response& res) {
 
 // test4 → 5003번 포트의 chat admin 호출
 void handleTest4(const httplib::Request&, httplib::Response& res) {
-    httplib::Client cli("http://localhost:5003");
+    httplib::Client cli("http://localhost:5004");
     auto response = cli.Get("/chat/admin");
     if (response) {
         res.set_content(response->body, "text/plain");
@@ -87,6 +87,4 @@ int main() {
 
     std::cout << "API Gateway 실행 중: http://localhost:8080" << std::endl;
     svr.listen("0.0.0.0", 8080);
-
-    // 서버가 실행된 상태로 계속 유지
 }
