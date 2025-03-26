@@ -1,9 +1,12 @@
+// github test1
 #include "httplib.h"
 #include <iostream>
 
 // 채팅 관련 함수
 void handleChat(const httplib::Request& req, httplib::Response& res) {
     
+    // 내부 로직 기능
+
     res.set_content("chat", "text/plain");
 }
 
