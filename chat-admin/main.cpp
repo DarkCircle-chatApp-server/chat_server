@@ -1,16 +1,19 @@
 #include "httplib.h"
 #include <iostream>
+#include"DB_admin.hpp"
 
 // 채팅 관리자 기능 함수
-void handleChatAdmin(const httplib::Request& req, httplib::Response& res) {
+void handle_chat_admin(const httplib::Request& req, httplib::Response& res) {
 
     res.set_content("chat admin", "text/plain"); // 성공 응답
 }
 
 int main() {
+    MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
+
     httplib::Server svr;    // httplib::Server 객체 생성
 
-    svr.Get("/chat/admin", handleChatAdmin);
+    svr.Get("/chat/admin", handle_chat_admin);
 
     // CORS 설정
     svr.set_default_headers({
@@ -21,6 +24,7 @@ int main() {
 
     std::cout << "Chat Service 실행 중: http://localhost:5004" << std::endl;
     svr.listen("0.0.0.0", 5004); // 서버 실행
+    
 
     // return 0; 하면 안 됨, 서버는 종료될 때까지 계속 실행되어야 함
 }

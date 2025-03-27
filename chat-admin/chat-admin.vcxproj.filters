@@ -18,5 +18,11 @@
     <ClCompile Include="main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="DB_admin.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClCompile>
+    <ClCompile Include="chat_freeze.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
