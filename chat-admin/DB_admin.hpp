@@ -33,6 +33,10 @@ public:
 			cerr << "MySQL Connection Failed" << endl;
 		}
 	}
+	Connection* getConnection() {
+		return conn.get();
+	}
+
 	~MySQLConnector() {
 		cout << "MySQL DisConnect!!" << endl;
 	}

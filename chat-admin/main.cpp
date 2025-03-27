@@ -1,6 +1,7 @@
 #include "httplib.h"
 #include <iostream>
 #include"DB_admin.hpp"
+#include "chat_ban.hpp"
 
 // 채팅 관리자 기능 함수
 void handle_chat_admin(const httplib::Request& req, httplib::Response& res) {
@@ -9,7 +10,14 @@ void handle_chat_admin(const httplib::Request& req, httplib::Response& res) {
 }
 
 int main() {
+    SetConsoleOutputCP(CP_UTF8);
     MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
+    //ban
+    User_ban user_ban(db.getConnection());
+    user_ban.set_user_id("1");
+    user_ban.User_ban_func();
+    //unban
+    user_ban.User_unban_func();
 
     httplib::Server svr;    // httplib::Server 객체 생성
 
@@ -22,7 +30,7 @@ int main() {
         { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
         });
 
-    std::cout << "Chat Service 실행 중: http://localhost:5004" << std::endl;
+    std::cout << "Chat Service running: http://localhost:5004" << std::endl;
     svr.listen("0.0.0.0", 5004); // 서버 실행
     
 
