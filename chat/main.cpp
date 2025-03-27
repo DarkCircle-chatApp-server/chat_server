@@ -1,17 +1,14 @@
-
-// test4
-
-// github test1
-
-// github test3
-
-// github test2
-
-// test4 ee111
-
-#include "httplib.h"
 #include <iostream>
+#include "httplib.h"
+#include "chat_send.hpp"
+#include "DB.hpp"
 
+using namespace sql;
+
+#define SERVER_IP	"127.0.0.1:3306"
+#define USERNAME	"root"
+#define PASSWORD	"12345"
+#define DATABASE	"chat"
 
 // 채팅 관련 함수
 void handleChat(const httplib::Request& req, httplib::Response& res) {
@@ -21,7 +18,15 @@ void handleChat(const httplib::Request& req, httplib::Response& res) {
     res.set_content("chat", "text/plain");
 }
 
+void db() {
+    sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
+    Connection* conn = driver->connect(SERVER_IP, USERNAME, PASSWORD);
+    conn->setSchema(DATABASE);
+}
+
 int main() {
+    db();
+
     httplib::Server svr;    // httplib::Server 객체 생성
 
     svr.Get("/chat", handleChat);
