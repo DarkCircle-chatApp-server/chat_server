@@ -1,39 +1,114 @@
+#pragma once
 #include <iostream>
 #include "httplib.h"
 #include <string>
 #include <mysql/jdbc.h>
 #include "DBmodule.hpp"
+#include "json.hpp"     // JSON 파싱을 위한 라이브러리. 디스코드 참고할 것
+
 using namespace std;
 using namespace sql;
+using json = nlohmann::json;
 
 // c++에는 date 자료형이 없어서 따로 년-월-일 담을 구조체 생성
 struct Birthdate {
-	int year;
-	int month;
-	int day;
+    int year;
+    int month;
+    int day;
 };
 
 // 회원가입 데이터 담을 클래스
 class SignIn {
 private:
-	string login_id;
-	string login_pw;
-	string user_name;
-	string user_addr;
-	string user_phone;
-	int user_status;
-	string user_email;
-	Birthdate user_birthdate;
-	Connection* conn;	// Connection 타입의 포인터 conn
+    string login_id;
+    string login_pw;
+    string user_name;
+    string user_addr;
+    string user_phone;
+    int user_status;
+    string user_email;
+    Birthdate user_birthdate;
+    Connection* conn;   // Connection 타입의 포인터 conn
 public:
-	SignIn(Connection* dbconn) : conn(dbconn) {		// 의존성 주입. MySQLConnector 객체로부터 주입받음
+    SignIn(Connection* dbconn) : conn(dbconn) {      // 의존성 주입. MySQLConnector 객체로부터 주입받음
 
-	}
-	void showUsers() {
-		unique_ptr<Statement> stmt{ conn->createStatement() };
-		unique_ptr<ResultSet> res{ stmt->executeQuery("SELECT user_name FROM User") };
-		while (res->next()) {
-			cout << res->getString("user_name") << endl;
-		}
-	}
+    }
+    // 회원테이블 조회(테스트용으로 만들었음)
+    void showUsers() {
+        unique_ptr<Statement> stmt{ conn->createStatement() };
+        unique_ptr<ResultSet> res{ stmt->executeQuery("SELECT user_name FROM User") };
+        while (res->next()) {
+            cout << res->getString("user_name") << endl;
+        }
+    }
+    // 회원테이블에 회원가입 데이터 삽입
+    void insertUser(const string& login_id, const string& login_pw, const string& user_name, const string& user_addr, const string& user_phone, const string& user_email, const Birthdate user_birthdate) {
+        try {
+            unique_ptr<Statement> stmt{ conn->createStatement() };
+            stmt->execute("SET NAMES utf8mb4");
+
+            unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("INSERT INTO User(login_id, login_pw, user_name, user_addr, user_phone, user_email, user_birthdate) values(?, ?, ?, ?, ?, ?, ?)") };
+
+            // birthdate -> YYYY-MM-DD 형식으로 변환
+            string birthdate_str = to_string(user_birthdate.year) + "-"
+                + (user_birthdate.month < 10 ? "0" : "") + to_string(user_birthdate.month) + "-"
+                + (user_birthdate.day < 10 ? "0" : "") + to_string(user_birthdate.day);
+
+            // PreparedStatement에 값 설정
+            pstmt->setString(1, login_id);
+            pstmt->setString(2, login_pw);
+            pstmt->setString(3, user_name);
+            pstmt->setString(4, user_addr);
+            pstmt->setString(5, user_phone);
+            pstmt->setString(6, user_email);
+            pstmt->setString(7, birthdate_str);
+
+            int result = pstmt->executeUpdate();
+            if (result > 0) {
+                cout << "회원가입 성공" << endl;
+            }
+            else {
+                cout << "회원가입 실패" << endl;
+            }
+        }
+
+        catch (const SQLException &e) {
+            cout << "INSERT Error" << e.what() << endl;
+        }
+    }
+
+    // 회원가입 처리 함수
+    void handleSignIn(const httplib::Request& req, httplib::Response& res) {
+        try {
+
+            // 클라이언트의 요청은 json 데이터 타입으로 서버로 들어옴
+            // json 객체 req_json 생성
+            // req.body : 서버로 들어온 json 타입의 데이터를 string으로 파싱
+            json req_json = json::parse(req.body);
+
+            Birthdate birthdate;
+
+            // json 데이터 추출
+            string login_id = req_json["login_id"];
+            string login_pw = req_json["login_pw"];
+            string user_name = req_json["user_name"];
+            string user_addr = req_json["user_addr"];
+            string user_phone = req_json["user_phone"];
+            string user_email = req_json["user_email"];
+            birthdate.year = req_json["user_birthdate"]["year"];
+            birthdate.month = req_json["user_birthdate"]["month"];
+            birthdate.day = req_json["user_birthdate"]["day"];
+
+            // 회원정보 db 삽입
+            insertUser(login_id, login_pw, user_name, user_addr, user_phone, user_email, birthdate);
+
+            // 처리된 결과 응답 반환
+            res.set_content("sign-in success", "text/plain");
+        }
+        catch (const SQLException& e) {
+            cout << "INSERT Error" << e.what() << endl;
+        } 
+
+    }
 };
+
