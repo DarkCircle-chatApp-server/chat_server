@@ -2,6 +2,9 @@
 #include <iostream>
 #include "DBmodule.hpp"
 #include "signinClass.hpp"
+#include <Windows.h>
+//#include <nlohmann/json.hpp>  // JSON 파싱을 위한 라이브러리
+
 
 // 필요한 함수들은 헤더파일에 만들기
 // 일단 전부다 간단한 GET 요청으로만 api를 만들어놨음. 기능에 따라 GET, POST, PUT, DELETE 중 적절한 메서드로 변경할 것
@@ -24,27 +27,22 @@ void handleLogin(const httplib::Request& req, httplib::Response& res) {     // R
     res.set_content("login success", "text/plain");
 }
 
-// 회원가입 처리 함수
-void handleSignIn(const httplib::Request& req, httplib::Response& res) {
-    // 여기에 db연동해서 데이터 처리하는거랑
-    // redis로 요청보내는 코드 넣어야함
-
-    // 처리된 결과 응답 반환
-    res.set_content("sign-in success", "text/plain");
-}
-
 int main() {
-    SetConsoleOutputCP(CP_UTF8);    // 콘솔 출력 인코딩
+    SetConsoleOutputCP(CP_UTF8);    // 콘솔 출력 인코딩. 한글입력값 왼쪽에 u8 붙여줄 것
     MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
     SignIn signin(db.getConnection());  // getConnection()에서 반환된 MySQLConnector의 conn을 signin객체에 주입
-    signin.showUsers();
+
     httplib::Server svr;    // httplib::Server 객체 생성
 
     // "/login" URL로 들어오는 GET 요청을 handleLogin 함수로 처리
     svr.Get("/login", handleLogin);
 
-    // "/signIn" URL로 들어오는 GET 요청을 handleSignIn 함수로 처리. 회원가입은 나중에 POST로 바꿔야함
-    svr.Get("/signIn", handleSignIn);
+    // "/signIn" URL로 들어오는 POST 요청을 handleSignIn 함수로 처리
+    // 람다식 쓴 이유 : 람다 안쓰면 signin.handleSignIn() 이런식으로 외부 객체 함수에 접근 못한다고 함..시발
+    // [&] : 캡처 리스트 - 현재 스코프의 변수들을 참조 방식으로 캡처(설명에 이렇게 나와있는데 그냥 람다식 앞에 붙이는 코드인듯함)
+    svr.Post("/signIn", [&](const httplib::Request& req, httplib::Response& res) {
+        signin.handleSignIn(req, res);
+    });
 
     // CORS 설정(다른 포트번호에서(react 포트:3000) 들어오는 요청 허용)
     svr.set_default_headers({
@@ -54,8 +52,8 @@ int main() {
         });
 
     // 5001번 포트로 들어오는 클라이언트 요청 받음
-    std::cout << "Login Service 실행 중: http://localhost:5001" << std::endl;
-    std::cout << "SignIn Service 실행 중: http://localhost:5001" << std::endl;
+    std::cout << "Login Service running: http://localhost:5001" << std::endl;
+    std::cout << "SignIn Service running: http://localhost:5001" << std::endl;
     svr.listen("0.0.0.0", 5001);
 
     //svr.listen("0.0.0.0", 5002);
