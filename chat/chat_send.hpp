@@ -11,13 +11,13 @@ class Chat_send {
 private:
 	int user_id;
 	const int user_status = NULL;		// 유저 상태값 상수화 선언
-	
+
 	string msg_text;
 	string msg_time;
 	Connection* conn;
 public:
 	Chat_send(int _user_id, const char* _msg_text, const char* _msg_time, Connection* dbconn)
-		: user_id(_user_id), msg_text(_msg_text), msg_time(_msg_time), conn(dbconn){
+		: user_id(_user_id), msg_text(_msg_text), msg_time(_msg_time), conn(dbconn) {
 	}
 
 	void insert_chat() {		// 채팅 DB로 저장하는 함수
