@@ -35,13 +35,15 @@ int main() {
     httplib::Server svr;    // httplib::Server 객체 생성
 
     // "/login" URL로 들어오는 GET 요청을 handleLogin 함수로 처리
-    svr.Get("/login", handleLogin);
+    svr.Post("/login", [&](const httplib::Request& req, httplib::Response& res) {
+        signin.handle_login(req, res);
+    });
 
     // "/signIn" URL로 들어오는 POST 요청을 handleSignIn 함수로 처리
     // 람다식 쓴 이유 : 람다 안쓰면 signin.handleSignIn() 이런식으로 외부 객체 함수에 접근 못한다고 함..시발
     // [&] : 캡처 리스트 - 현재 스코프의 변수들을 참조 방식으로 캡처(설명에 이렇게 나와있는데 그냥 람다식 앞에 붙이는 코드인듯함)
     svr.Post("/signIn", [&](const httplib::Request& req, httplib::Response& res) {
-        signin.handleSignIn(req, res);
+        signin.handle_signIn(req, res);
     });
 
     // CORS 설정(다른 포트번호에서(react 포트:3000) 들어오는 요청 허용)

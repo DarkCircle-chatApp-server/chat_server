@@ -34,7 +34,7 @@ public:
 
     }
     // 회원테이블 조회(테스트용으로 만들었음)
-    void showUsers() {
+    void show_users() {
         unique_ptr<Statement> stmt{ conn->createStatement() };
         unique_ptr<ResultSet> res{ stmt->executeQuery("SELECT user_name FROM User") };
         while (res->next()) {
@@ -42,7 +42,7 @@ public:
         }
     }
     // 회원테이블에 회원가입 데이터 삽입
-    void insertUser(const string& login_id, const string& login_pw, const string& user_name, const string& user_addr, const string& user_phone, const string& user_email, const Birthdate user_birthdate) {
+    void insert_user(const string& login_id, const string& login_pw, const string& user_name, const string& user_addr, const string& user_phone, const string& user_email, const Birthdate user_birthdate) {
         try {
             unique_ptr<Statement> stmt{ conn->createStatement() };
             stmt->execute("SET NAMES utf8mb4");
@@ -78,7 +78,7 @@ public:
     }
 
     // 회원가입 처리 함수
-    void handleSignIn(const httplib::Request& req, httplib::Response& res) {
+    void handle_signIn(const httplib::Request& req, httplib::Response& res) {
         try {
 
             // 클라이언트의 요청은 json 데이터 타입으로 서버로 들어옴
@@ -100,7 +100,7 @@ public:
             birthdate.day = req_json["user_birthdate"]["day"];
 
             // 회원정보 db 삽입
-            insertUser(login_id, login_pw, user_name, user_addr, user_phone, user_email, birthdate);
+            insert_user(login_id, login_pw, user_name, user_addr, user_phone, user_email, birthdate);
 
             // 처리된 결과 응답 반환
             res.set_content("sign-in success", "text/plain");
@@ -108,7 +108,50 @@ public:
         catch (const SQLException& e) {
             cout << "INSERT Error" << e.what() << endl;
         } 
+    }
 
+    // 입력데이터와 회원테이블 데이터 비교
+    bool check_data(const string& login_id, const string& login_pw) {
+        try {
+            unique_ptr<Statement> stmt{ conn->createStatement() };
+            stmt->execute("SET NAMES utf8mb4");
+
+            unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("SELECT login_pw FROM User WHERE login_id = ?") };
+            pstmt->setString(1, login_id);
+            unique_ptr<ResultSet> res{ pstmt->executeQuery() };
+
+            if (res->next()) {
+                // 회원테이블 login_pw 컬럼값 가져옴
+                string chat_password = res->getString("login_pw");
+                // 입력한 chat_password와 db에서 가져온 login_pw가 일치하는지 비교(true/false 반환)
+                return login_pw == chat_password;
+            }
+        }
+        catch (const SQLException& e) {
+            cout << "login failed" << e.what() << endl;
+        }
+        // 위에서 true 반환 못받으면 false 반환
+        return false;
+    }
+
+    // 로그인 처리 함수
+    void handle_login(const httplib::Request& req, httplib::Response& res) {
+        try {
+            json req_json = json::parse(req.body);
+
+            string login_id = req_json["login_id"];
+            string login_pw = req_json["login_pw"];
+
+            if (check_data(login_id, login_pw)) {
+                res.set_content("login success", "text/plain");
+            }
+            else {
+                res.set_content("login failed", "text/plain");
+            }
+        }
+        catch (const SQLException& e) {
+            cout << "login failed" << e.what() << endl;
+        }
     }
 };
 
