@@ -30,6 +30,10 @@ public:
 			cerr << "MySQL Connection failed" << e.what() << endl;
 		}
 	}
+	// 포인터 conn 반환(다른 객체에서 MySQLConnector의 conn을 사용하기 위해 만들었음) 
+	Connection* getConnection() {
+		return conn.get();
+	}
 	~MySQLConnector() {
 		cout << "MySQL Disconnect" << endl;
 	}
