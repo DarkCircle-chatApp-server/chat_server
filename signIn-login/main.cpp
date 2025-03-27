@@ -1,5 +1,6 @@
 #include "httplib.h"    // httplib 헤더파일 추가
 #include <iostream>
+#include "DBmodule.hpp"
 
 // 필요한 함수들은 헤더파일에 만들기
 // 일단 전부다 간단한 GET 요청으로만 api를 만들어놨음. 기능에 따라 GET, POST, PUT, DELETE 중 적절한 메서드로 변경할 것
@@ -32,6 +33,7 @@ void handleSignIn(const httplib::Request& req, httplib::Response& res) {
 }
 
 int main() {
+    MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
     httplib::Server svr;    // httplib::Server 객체 생성
 
     // "/login" URL로 들어오는 GET 요청을 handleLogin 함수로 처리

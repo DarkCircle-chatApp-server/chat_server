@@ -26,5 +26,8 @@
     <ClInclude Include="test2.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
+    <ClInclude Include="DBmodule.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
