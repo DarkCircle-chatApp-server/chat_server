@@ -5,10 +5,16 @@
 #include <mysql/jdbc.h>
 #include "DBmodule.hpp"
 #include "json.hpp"     // JSON 파싱을 위한 라이브러리. 디스코드 참고할 것
+#include "jwt/jwt.hpp"
 
 using namespace std;
 using namespace sql;
 using json = nlohmann::json;
+using namespace jwt::params;
+
+// JWT 발급을 위한 시크릿 키
+const string JWT_SECRET_KEY = "secret_key";
+
 
 // c++에는 date 자료형이 없어서 따로 년-월-일 담을 구조체 생성
 struct Birthdate {
@@ -65,15 +71,33 @@ public:
 
             int result = pstmt->executeUpdate();
             if (result > 0) {
-                cout << "회원가입 성공" << endl;
+                cout << u8"회원가입 성공" << endl;
             }
             else {
-                cout << "회원가입 실패" << endl;
+                cout << u8"회원가입 실패" << endl;
             }
         }
 
         catch (const SQLException &e) {
             cout << "INSERT Error" << e.what() << endl;
+        }
+    }
+
+   
+
+    // JWT 발급 함수
+    string create_jwt(const string& login_id, const string& user_email) {
+        try {
+            jwt::jwt_object obj{ algorithm("HS256"), secret(JWT_SECRET_KEY) };
+            obj.add_claim("login_id", login_id)
+                .add_claim("user_email", user_email)
+                .add_claim("iss", "auth_service");
+
+            return obj.signature();
+        }
+        catch (const exception& e) {
+            cout << "JWT 생성 오류: " << e.what() << endl;
+            return "";
         }
     }
 
@@ -153,5 +177,7 @@ public:
             cout << "login failed" << e.what() << endl;
         }
     }
+    
+    
 };
 
