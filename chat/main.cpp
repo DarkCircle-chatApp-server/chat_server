@@ -10,6 +10,14 @@ using namespace sql;
 #define PASSWORD	"12345"
 #define DATABASE	"chat"
 
+// mysql 연결함수
+Connection* mysql_db_conn() {
+    sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
+    Connection* conn = driver->connect(SERVER_IP, USERNAME, PASSWORD);
+    conn->setSchema(DATABASE);
+    return conn;
+}
+
 // 채팅 관련 함수
 void handleChat(const httplib::Request& req, httplib::Response& res) {
     
@@ -18,14 +26,17 @@ void handleChat(const httplib::Request& req, httplib::Response& res) {
     res.set_content("chat", "text/plain");
 }
 
-void db() {
-    sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
-    Connection* conn = driver->connect(SERVER_IP, USERNAME, PASSWORD);
-    conn->setSchema(DATABASE);
-}
-
 int main() {
-    db();
+
+    /* // 메인함수에서 임시로 돌려본 코드
+    Connection* conn = mysql_db_conn();
+
+    Chat_send hong(1, "hello", "12", conn);
+
+    hong.print_chat();
+    hong.insert_chat();
+    hong.print_chat();
+    */
 
     httplib::Server svr;    // httplib::Server 객체 생성
 
@@ -40,6 +51,6 @@ int main() {
 
     std::cout << "Chat Service 실행 중: http://localhost:5003" << std::endl;
     svr.listen("0.0.0.0", 5003); // 서버 실행
-
+    
     // return 0; 하면 안 됨, 서버는 종료될 때까지 계속 실행되어야 함
 }
