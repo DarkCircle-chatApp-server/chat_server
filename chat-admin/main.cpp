@@ -4,25 +4,22 @@
 #include "chat_ban.hpp"
 
 // 채팅 관리자 기능 함수
-void handle_chat_admin(const httplib::Request& req, httplib::Response& res) {
-
-    res.set_content("chat admin", "text/plain"); // 성공 응답
-}
+//void handle_chat_admin(const httplib::Request& req, httplib::Response& res) {
+//
+//    res.set_content("chat admin", "text/plain"); // 성공 응답
+//}
 
 int main() {
     SetConsoleOutputCP(CP_UTF8);
     MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
-    //ban
     User_ban user_ban(db.getConnection());
-    user_ban.set_user_id("1");
-    user_ban.User_ban_func();
-    //unban
-    user_ban.User_unban_func();
-
+    user_ban.set_user_id("1");      // user_id 차후에 동적으로 기입
+    
     httplib::Server svr;    // httplib::Server 객체 생성
 
-    svr.Get("/chat/admin", handle_chat_admin);
-
+    svr.Put("/chat/admin/ban", [&](const httplib::Request& req, httplib::Response& res) {
+        user_ban.handle_user_ban(req, res);
+        });
     // CORS 설정
     svr.set_default_headers({
         { "Access-Control-Allow-Origin", "*" },     // 모든 도메인에서 접근 허용
