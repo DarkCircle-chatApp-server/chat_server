@@ -84,13 +84,17 @@ public:
         }
     }   
 
+<<<<<<< Updated upstream
     // JWT 발급 함수
     string create_jwt(const string& login_id, const string& user_email) {
+=======
+    // JWT 토큰 발급 함수
+    string create_jwt(const string& login_id) {
+>>>>>>> Stashed changes
         try {
             jwt::jwt_object obj{ algorithm("HS256"), secret(JWT_SECRET_KEY) };
             obj.add_claim("login_id", login_id)
-                .add_claim("user_email", user_email)
-                .add_claim("iss", "auth_service");
+               .add_claim("iss", "auth_service");
 
             return obj.signature();
         }
@@ -126,7 +130,7 @@ public:
             insert_user(login_id, login_pw, user_name, user_addr, user_phone, user_email, birthdate);
 
             // JWT 토큰 생성
-            string token = create_jwt(login_id, user_email);
+            string token = create_jwt(login_id);
 
             // 회원가입 성공하면 클라이언트에 jwt토큰 반환
             // jwt 토큰
@@ -180,7 +184,7 @@ public:
             if (check_data(login_id, login_pw)) {
                 cout << u8"회원가입 성공" << endl;
                 // 아이디 비밀번호 일치 -> 로그인 성공 시 jwt 토큰 반환
-                string token = create_jwt(login_id, req_json["user_email"]);
+                string token = create_jwt(login_id);
 
                 // 로그인 성공하면 클라이언트에 jwt 토큰 반환
                 json response = { {"message", "login success"}, {"token", token} };
