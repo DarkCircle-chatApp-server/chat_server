@@ -40,6 +40,12 @@ int main() {
         signin.handle_signIn(req, res);
     });
 
+    // 회원 탈퇴 요청
+    svr.Put("/update2", [&](const httplib::Request& req, httplib::Response& res) {
+        cout << "call success" << endl;
+        signin.handle_delete(req, res);
+    });
+
     // CORS 설정(다른 포트번호에서(react 포트:3000) 들어오는 요청 허용)
     svr.set_default_headers({
         { "Access-Control-Allow-Origin", "*" },     // 모든 도메인에서 접근 허용

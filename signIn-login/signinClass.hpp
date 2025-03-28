@@ -226,6 +226,47 @@ public:
             cout << "login failed" << e.what() << endl;
         }
     }
+
+    // user_status 2로 변경 -> 관리자 승인 후 최종 탈퇴 처리
+    void delete_user(const int& user_id) {
+        try {
+            unique_ptr<Statement> stmt{ conn->createStatement() };
+            stmt->execute("SET NAMES utf8mb4");
+
+            unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("UPDATE User SET user_status = 2 WHERE user_id = ?") };
+
+            pstmt->setInt(1, user_id);
+
+            int result = pstmt->executeUpdate();
+            if (result > 0) {
+                cout << "need to wait admin's acception" << endl;
+            }
+            else {
+                cout << "deletion requirement failed" << endl;
+            }
+        }
+        catch (const SQLException &e) {
+            cout << "UPDATE Error: " << e.what() << endl;
+        }
+    }
+
+    // 회원 탈퇴 요청
+    void handle_delete(const httplib::Request& req, httplib::Response& res) {
+        try {
+            json req_json = json::parse(req.body);
+
+            int user_id = req_json["user_id"];
+
+            delete_user(user_id);
+
+            json response = { {"message", "UPDATE success"} };
+            res.set_content(response.dump(), "application/json");
+
+        }
+        catch (const SQLException& e) {
+            cout << "UPDATE Error: " << e.what() << endl;
+        }
+    }
     
     
 };
