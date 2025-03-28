@@ -17,15 +17,6 @@
 
 // 일단 지금 편의상 main.cpp에 함수도 정의 해놨음. 나중에 헤더파일로 옮겨야함
 // 헤더파일 예시는 지금 이 프로젝트 안의 test1.hpp, test2.hpp 헤더파일 확인할 것
-// 로그인 처리 함수
-void handleLogin(const httplib::Request& req, httplib::Response& res) {     // Request& req: 클라이언트의 요청, 
-                                                                            // httplib::Response& res: 서버 실행결과 응답 객체
-    // 여기에 db연동해서 데이터 처리하는거랑
-    // redis로 요청보내는 코드 넣어야함
-
-    // 처리된 결과 응답 반환
-    res.set_content("login success", "text/plain");
-}
 
 int main() {
     SetConsoleOutputCP(CP_UTF8);    // 콘솔 출력 인코딩. 한글입력값 왼쪽에 u8 붙여줄 것

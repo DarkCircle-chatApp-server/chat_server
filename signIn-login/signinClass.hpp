@@ -40,13 +40,14 @@ public:
 
     }
     // 회원테이블 조회(테스트용으로 만들었음)
-    void show_users() {
+   /* void show_users() {
         unique_ptr<Statement> stmt{ conn->createStatement() };
         unique_ptr<ResultSet> res{ stmt->executeQuery("SELECT user_name FROM User") };
         while (res->next()) {
             cout << res->getString("user_name") << endl;
         }
-    }
+    }*/
+
     // 회원테이블에 회원가입 데이터 삽입
     void insert_user(const string& login_id, const string& login_pw, const string& user_name, const string& user_addr, const string& user_phone, const string& user_email, const Birthdate user_birthdate) {
         try {
@@ -81,9 +82,7 @@ public:
         catch (const SQLException &e) {
             cout << "INSERT Error" << e.what() << endl;
         }
-    }
-
-   
+    }   
 
     // JWT 발급 함수
     string create_jwt(const string& login_id, const string& user_email) {
@@ -126,8 +125,20 @@ public:
             // 회원정보 db 삽입
             insert_user(login_id, login_pw, user_name, user_addr, user_phone, user_email, birthdate);
 
+            // JWT 토큰 생성
+            string token = create_jwt(login_id, user_email);
+
+            // 회원가입 성공하면 클라이언트에 jwt토큰 반환
+            // jwt 토큰
+            /*{
+                "message": "sign-in success",
+                "token" : "sdjflsSJALFDJASLDFsjdlfkjSDFJLsdfj1321sdlkfjs123..." // 암호화된 데이터
+            }*/
+            json response = { {"message", "sign-in success"}, {"token", token} };
+
             // 처리된 결과 응답 반환
-            res.set_content("sign-in success", "text/plain");
+            // response.dump() : json 데이터({ {"message", "sign-in success"}, {"token", token} }) -> 문자열 변환한 값
+            res.set_content(response.dump(), "application/json");
         }
         catch (const SQLException& e) {
             cout << "INSERT Error" << e.what() << endl;
@@ -167,7 +178,14 @@ public:
             string login_pw = req_json["login_pw"];
 
             if (check_data(login_id, login_pw)) {
-                res.set_content("login success", "text/plain");
+                cout << u8"회원가입 성공" << endl;
+                // 아이디 비밀번호 일치 -> 로그인 성공 시 jwt 토큰 반환
+                string token = create_jwt(login_id, req_json["user_email"]);
+
+                // 로그인 성공하면 클라이언트에 jwt 토큰 반환
+                json response = { {"message", "login success"}, {"token", token} };
+                // 응답 반환
+                res.set_content(response.dump(), "application/json");
             }
             else {
                 res.set_content("login failed", "text/plain");
