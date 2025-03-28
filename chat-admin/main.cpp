@@ -13,13 +13,22 @@ int main() {
     SetConsoleOutputCP(CP_UTF8);
     MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
     User_ban user_ban(db.getConnection());
-    user_ban.set_user_id("1");      // user_id 차후에 동적으로 기입
+    
     
     httplib::Server svr;    // httplib::Server 객체 생성
 
+    // 밴 처리
     svr.Put("/chat/admin/ban", [&](const httplib::Request& req, httplib::Response& res) {
         user_ban.handle_user_ban(req, res);
         });
+
+    // 밴해제 처리
+    User_ban user_unban(db.getConnection());
+
+    svr.Put("/chat/admin/unban", [&](const httplib::Request& req, httplib::Response& res) {
+        user_unban.handle_user_unban(req, res);
+        });
+
     // CORS 설정
     svr.set_default_headers({
         { "Access-Control-Allow-Origin", "*" },     // 모든 도메인에서 접근 허용

@@ -16,26 +16,23 @@ using json = nlohmann::json;
 // 밴 클래스 생성 및 기능 함수
 class User_ban {
 private:
-	string user_id;
+	int user_id;
 	Connection* conn;
 public:
 	User_ban(Connection* connection) : conn(connection) {}
 
-	void set_user_id(const string& id) {
-		user_id = id;
-	}
 	// 밴 기능
-	void User_ban_func() {
+	void User_ban_func(const int& user_id) {
 		unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("UPDATE User SET user_status = 3 WHERE user_id = ?") };
 		// "user_id = 1" 의 부분은 클릭시 해당 user_id로 변경할 것
-		pstmt->setString(1, user_id);
+		pstmt->setInt(1, user_id);
 		pstmt->executeUpdate();
 	}
 	// 밴 해제 기능
-	void User_unban_func() {
+	void User_unban_func(const int& user_id) {
 		unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("UPDATE User SET user_status = 1 WHERE user_id = ?") };
 		// "user_id = 1" 의 부분은 클릭시 해당 user_id로 변경할 것
-		pstmt->setString(1, user_id);
+		pstmt->setInt(1, user_id);
 		pstmt->executeUpdate();
 	}
 
@@ -45,11 +42,11 @@ public:
 			json req_json = json::parse(req.body);
 
 			// json 데이터 추출
-			string user_id = req_json["user_id"];
+			int user_id = req_json["user_id"];
 			int user_status = req_json["user_status"];
 
 			// 밴 처리
-			User_ban_func();
+			User_ban_func(user_id);
 			res.set_content("Ban sucess", "text/plain");
 		}
 		catch (const SQLException& e) {
@@ -63,11 +60,11 @@ public:
 			json req_json = json::parse(req.body);
 
 			// json 데이터 추출
-			string user_id = req_json["user_id"];
+			int user_id = req_json["user_id"];
 			int user_status = req_json["user_status"];
 
 			// 밴 해제 처리
-			User_unban_func();
+			User_unban_func(user_id);
 			res.set_content("Unban sucess", "text/plain");
 		}
 		catch (const SQLException& e) {
