@@ -4,7 +4,7 @@
 #include <string>
 #include <mysql/jdbc.h>
 #include "DBmodule.hpp"
-#include "json.hpp"     // JSON ÆÄ½ÌÀ» À§ÇÑ ¶óÀÌºê·¯¸®. µğ½ºÄÚµå Âü°íÇÒ °Í
+#include "json.hpp"     // JSON íŒŒì‹±ì„ ìœ„í•œ ë¼ì´ë¸ŒëŸ¬ë¦¬. ë””ìŠ¤ì½”ë“œ ì°¸ê³ í•  ê²ƒ
 #include "jwt/jwt.hpp"
 
 using namespace std;
@@ -12,18 +12,18 @@ using namespace sql;
 using json = nlohmann::json;
 using namespace jwt::params;
 
-// JWT ¹ß±ŞÀ» À§ÇÑ ½ÃÅ©¸´ Å°
+// JWT ë°œê¸‰ì„ ìœ„í•œ ì‹œí¬ë¦¿ í‚¤
 const string JWT_SECRET_KEY = "secret_key";
 
 
-// c++¿¡´Â date ÀÚ·áÇüÀÌ ¾ø¾î¼­ µû·Î ³â-¿ù-ÀÏ ´ãÀ» ±¸Á¶Ã¼ »ı¼º
+// c++ì—ëŠ” date ìë£Œí˜•ì´ ì—†ì–´ì„œ ë”°ë¡œ ë…„-ì›”-ì¼ ë‹´ì„ êµ¬ì¡°ì²´ ìƒì„±
 struct Birthdate {
     int year;
     int month;
     int day;
 };
 
-// È¸¿ø°¡ÀÔ µ¥ÀÌÅÍ ´ãÀ» Å¬·¡½º
+// íšŒì›ê°€ì… ë°ì´í„° ë‹´ì„ í´ë˜ìŠ¤
 class SignIn {
 private:
     string login_id;
@@ -34,9 +34,9 @@ private:
     int user_status;
     string user_email;
     Birthdate user_birthdate;
-    Connection* conn;   // Connection Å¸ÀÔÀÇ Æ÷ÀÎÅÍ conn
+    Connection* conn;   // Connection íƒ€ì…ì˜ í¬ì¸í„° conn
 public:
-    SignIn(Connection* dbconn) : conn(dbconn) {      // ÀÇÁ¸¼º ÁÖÀÔ. MySQLConnector °´Ã¼·ÎºÎÅÍ ÁÖÀÔ¹ŞÀ½
+    SignIn(Connection* dbconn) : conn(dbconn) {      // ì˜ì¡´ì„± ì£¼ì…. MySQLConnector ê°ì²´ë¡œë¶€í„° ì£¼ì…ë°›ìŒ
 
     }
     
@@ -49,33 +49,33 @@ public:
             if (res->next()) {
                 cout << "is_id_exist run" << endl;
                 cout << "res->getString(2)" << res->getInt(1) << endl;
-                return res->getInt(1) != 0;  // getInt(2) -> login_id¿¡ ÇÏ³ª¶óµµ Á¸ÀçÇÏ¸é 1, Á¸Àç¾ÈÇÏ¸é 0 // ¸¸¾à Á¸ÀçÇÏ¸é true ¹İÈ¯
+                return res->getInt(1) != 0;  // getInt(2) -> login_idì— í•˜ë‚˜ë¼ë„ ì¡´ì¬í•˜ë©´ 1, ì¡´ì¬ì•ˆí•˜ë©´ 0 // ë§Œì•½ ì¡´ì¬í•˜ë©´ true ë°˜í™˜
             }
         }
         catch (const sql::SQLException& e) {
             cerr << "SQL Error: " << e.what() << endl;
         }
-        // ¿¹¿Ü ¹ß»ı ½Ã false ¹İÈ¯
+        // ì˜ˆì™¸ ë°œìƒ ì‹œ false ë°˜í™˜
         return false;
     }
 
     bool check_validation(const httplib::Request& req, httplib::Response& res) {
         json req_json = json::parse(req.body);
 
-        // json µ¥ÀÌÅÍ ÃßÃâ
+        // json ë°ì´í„° ì¶”ì¶œ
         string login_id = req_json["login_id"];
         //string login_pw = req_json["login_pw"];
 
         if (is_id_exist(login_id)) {
             cout << "check_validation run" << is_id_exist(login_id) << endl;
-            res.status = 400;   // ¾ÆÀÌµğ Á¸Àç(true)¸é 400ÀÀ´äÀÌ ¶°¼­ ¿äÃ» ½ÇÇàÀÌ ¾ÈµÇµµ·Ï
+            res.status = 400;   // ì•„ì´ë”” ì¡´ì¬(true)ë©´ 400ì‘ë‹µì´ ë– ì„œ ìš”ì²­ ì‹¤í–‰ì´ ì•ˆë˜ë„ë¡
             res.set_content(u8"ID already exists", "text/plain");
             return false;
         }
         return true;
     }
 
-    // È¸¿øÅ×ÀÌºí¿¡ È¸¿ø°¡ÀÔ µ¥ÀÌÅÍ »ğÀÔ
+    // íšŒì›í…Œì´ë¸”ì— íšŒì›ê°€ì… ë°ì´í„° ì‚½ì…
     void insert_user(const string& login_id, const string& login_pw, const string& user_name, const string& user_addr, const string& user_phone, const string& user_email, const Birthdate user_birthdate) {
         try {
             unique_ptr<Statement> stmt{ conn->createStatement() };
@@ -83,12 +83,12 @@ public:
 
             unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("INSERT INTO User(login_id, login_pw, user_name, user_addr, user_phone, user_email, user_birthdate) values(?, ?, ?, ?, ?, ?, ?)") };
 
-            // birthdate -> YYYY-MM-DD Çü½ÄÀ¸·Î º¯È¯
+            // birthdate -> YYYY-MM-DD í˜•ì‹ìœ¼ë¡œ ë³€í™˜
             string birthdate_str = to_string(user_birthdate.year) + "-"
                 + (user_birthdate.month < 10 ? "0" : "") + to_string(user_birthdate.month) + "-"
                 + (user_birthdate.day < 10 ? "0" : "") + to_string(user_birthdate.day);
 
-            // PreparedStatement¿¡ °ª ¼³Á¤
+            // PreparedStatementì— ê°’ ì„¤ì •
             pstmt->setString(1, login_id);
             pstmt->setString(2, login_pw);
             pstmt->setString(3, user_name);
@@ -111,13 +111,12 @@ public:
         }
     }   
 
-    // JWT ÅäÅ« ¹ß±Ş ÇÔ¼ö
-    string create_jwt(const string& login_id, const string& user_email) {
+    // JWT í† í° ë°œê¸‰ í•¨ìˆ˜
+    string create_jwt(const string& login_id) {
         try {
             jwt::jwt_object obj{ algorithm("HS256"), secret(JWT_SECRET_KEY) };
             obj.add_claim("login_id", login_id)
-                .add_claim("user_email", user_email)
-                .add_claim("iss", "auth_service");
+               .add_claim("iss", "auth_service");
 
             return obj.signature();
         }
@@ -127,18 +126,18 @@ public:
         }
     }
 
-    // È¸¿ø°¡ÀÔ Ã³¸® ÇÔ¼ö
+    // íšŒì›ê°€ì… ì²˜ë¦¬ í•¨ìˆ˜
     void handle_signIn(const httplib::Request& req, httplib::Response& res) {
         try {
 
-            // Å¬¶óÀÌ¾ğÆ®ÀÇ ¿äÃ»Àº json µ¥ÀÌÅÍ Å¸ÀÔÀ¸·Î ¼­¹ö·Î µé¾î¿È
-            // json °´Ã¼ req_json »ı¼º
-            // req.body : ¼­¹ö·Î µé¾î¿Â json Å¸ÀÔÀÇ µ¥ÀÌÅÍ¸¦ stringÀ¸·Î ÆÄ½Ì
+            // í´ë¼ì´ì–¸íŠ¸ì˜ ìš”ì²­ì€ json ë°ì´í„° íƒ€ì…ìœ¼ë¡œ ì„œë²„ë¡œ ë“¤ì–´ì˜´
+            // json ê°ì²´ req_json ìƒì„±
+            // req.body : ì„œë²„ë¡œ ë“¤ì–´ì˜¨ json íƒ€ì…ì˜ ë°ì´í„°ë¥¼ stringìœ¼ë¡œ íŒŒì‹±
             json req_json = json::parse(req.body);
 
             Birthdate birthdate;
 
-            // json µ¥ÀÌÅÍ ÃßÃâ
+            // json ë°ì´í„° ì¶”ì¶œ
             string login_id = req_json["login_id"];
             string login_pw = req_json["login_pw"];
             string user_name = req_json["user_name"];
@@ -149,7 +148,7 @@ public:
             birthdate.month = req_json["user_birthdate"]["month"];
             birthdate.day = req_json["user_birthdate"]["day"];
 
-            // È¸¿øÁ¤º¸ db »ğÀÔ
+            // íšŒì›ì •ë³´ db ì‚½ì…
             if (check_validation(req, res)) {
                 insert_user(login_id, login_pw, user_name, user_addr, user_phone, user_email, birthdate);
             }
@@ -157,19 +156,19 @@ public:
                 cout << "ID already exists" << endl;
             }
 
-            // JWT ÅäÅ« »ı¼º
-            string token = create_jwt(login_id, user_email);
+            // JWT í† í° ìƒì„±
+            string token = create_jwt(login_id);
 
-            // È¸¿ø°¡ÀÔ ¼º°øÇÏ¸é Å¬¶óÀÌ¾ğÆ®¿¡ jwtÅäÅ« ¹İÈ¯
-            // jwt ÅäÅ«
+            // íšŒì›ê°€ì… ì„±ê³µí•˜ë©´ í´ë¼ì´ì–¸íŠ¸ì— jwtí† í° ë°˜í™˜
+            // jwt í† í°
             /*{
                 "message": "sign-in success",
-                "token" : "sdjflsSJALFDJASLDFsjdlfkjSDFJLsdfj1321sdlkfjs123..." // ¾ÏÈ£È­µÈ µ¥ÀÌÅÍ
+                "token" : "sdjflsSJALFDJASLDFsjdlfkjSDFJLsdfj1321sdlkfjs123..." // ì•”í˜¸í™”ëœ ë°ì´í„°
             }*/
             json response = { {"message", "sign-in success"}, {"token", token} };
 
-            // Ã³¸®µÈ °á°ú ÀÀ´ä ¹İÈ¯
-            // response.dump() : json µ¥ÀÌÅÍ({ {"message", "sign-in success"}, {"token", token} }) -> ¹®ÀÚ¿­ º¯È¯ÇÑ °ª
+            // ì²˜ë¦¬ëœ ê²°ê³¼ ì‘ë‹µ ë°˜í™˜
+            // response.dump() : json ë°ì´í„°({ {"message", "sign-in success"}, {"token", token} }) -> ë¬¸ìì—´ ë³€í™˜í•œ ê°’
             res.set_content(response.dump(), "application/json");
         }
         catch (const SQLException& e) {
@@ -177,7 +176,7 @@ public:
         } 
     }
 
-    // ÀÔ·Âµ¥ÀÌÅÍ¿Í È¸¿øÅ×ÀÌºí µ¥ÀÌÅÍ ºñ±³
+    // ì…ë ¥ë°ì´í„°ì™€ íšŒì›í…Œì´ë¸” ë°ì´í„° ë¹„êµ
     bool check_data(const string& login_id, const string& login_pw) {
         try {
             unique_ptr<Statement> stmt{ conn->createStatement() };
@@ -188,20 +187,20 @@ public:
             unique_ptr<ResultSet> res{ pstmt->executeQuery() };
 
             if (res->next()) {
-                // È¸¿øÅ×ÀÌºí login_pw ÄÃ·³°ª °¡Á®¿È
+                // íšŒì›í…Œì´ë¸” login_pw ì»¬ëŸ¼ê°’ ê°€ì ¸ì˜´
                 string chat_password = res->getString("login_pw");
-                // ÀÔ·ÂÇÑ chat_password¿Í db¿¡¼­ °¡Á®¿Â login_pw°¡ ÀÏÄ¡ÇÏ´ÂÁö ºñ±³(true/false ¹İÈ¯)
+                // ì…ë ¥í•œ chat_passwordì™€ dbì—ì„œ ê°€ì ¸ì˜¨ login_pwê°€ ì¼ì¹˜í•˜ëŠ”ì§€ ë¹„êµ(true/false ë°˜í™˜)
                 return login_pw == chat_password;
             }
         }
         catch (const SQLException& e) {
             cout << "login failed" << e.what() << endl;
         }
-        // À§¿¡¼­ true ¹İÈ¯ ¸ø¹ŞÀ¸¸é false ¹İÈ¯
+        // ìœ„ì—ì„œ true ë°˜í™˜ ëª»ë°›ìœ¼ë©´ false ë°˜í™˜
         return false;
     }
 
-    // ·Î±×ÀÎ Ã³¸® ÇÔ¼ö
+    // ë¡œê·¸ì¸ ì²˜ë¦¬ í•¨ìˆ˜
     void handle_login(const httplib::Request& req, httplib::Response& res) {
         try {
             json req_json = json::parse(req.body);
@@ -211,12 +210,12 @@ public:
 
             if (check_data(login_id, login_pw)) {
                 cout << "login success" << endl;
-                // ¾ÆÀÌµğ ºñ¹Ğ¹øÈ£ ÀÏÄ¡ -> ·Î±×ÀÎ ¼º°ø ½Ã jwt ÅäÅ« ¹İÈ¯
-                string token = create_jwt(login_id, req_json["user_email"]);
+                // ì•„ì´ë”” ë¹„ë°€ë²ˆí˜¸ ì¼ì¹˜ -> ë¡œê·¸ì¸ ì„±ê³µ ì‹œ jwt í† í° ë°˜í™˜
+                string token = create_jwt(login_id);
 
-                // ·Î±×ÀÎ ¼º°øÇÏ¸é Å¬¶óÀÌ¾ğÆ®¿¡ jwt ÅäÅ« ¹İÈ¯
+                // ë¡œê·¸ì¸ ì„±ê³µí•˜ë©´ í´ë¼ì´ì–¸íŠ¸ì— jwt í† í° ë°˜í™˜
                 json response = { {"message", "login success"}, {"token", token} };
-                // ÀÀ´ä ¹İÈ¯
+                // ì‘ë‹µ ë°˜í™˜
                 res.set_content(response.dump(), "application/json");
             }
             else {
