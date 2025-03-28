@@ -5,6 +5,8 @@
 #include <Windows.h>
 //#include <nlohmann/json.hpp>  // JSON 파싱을 위한 라이브러리
 
+using namespace std;
+
 
 // 필요한 함수들은 헤더파일에 만들기
 // 일단 전부다 간단한 GET 요청으로만 api를 만들어놨음. 기능에 따라 GET, POST, PUT, DELETE 중 적절한 메서드로 변경할 것
@@ -34,6 +36,7 @@ int main() {
     // 람다식 쓴 이유 : 람다 안쓰면 signin.handleSignIn() 이런식으로 외부 객체 함수에 접근 못한다고 함..시발
     // [&] : 캡처 리스트 - 현재 스코프의 변수들을 참조 방식으로 캡처(설명에 이렇게 나와있는데 그냥 람다식 앞에 붙이는 코드인듯함)
     svr.Post("/signIn", [&](const httplib::Request& req, httplib::Response& res) {
+        cout << "call success" << endl;
         signin.handle_signIn(req, res);
     });
 

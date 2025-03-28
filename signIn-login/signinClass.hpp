@@ -39,14 +39,41 @@ public:
     SignIn(Connection* dbconn) : conn(dbconn) {      // 의존성 주입. MySQLConnector 객체로부터 주입받음
 
     }
-    // 회원테이블 조회(테스트용으로 만들었음)
-   /* void show_users() {
-        unique_ptr<Statement> stmt{ conn->createStatement() };
-        unique_ptr<ResultSet> res{ stmt->executeQuery("SELECT user_name FROM User") };
-        while (res->next()) {
-            cout << res->getString("user_name") << endl;
+    
+    bool is_id_exist(const string& login_id) {
+        try {
+            unique_ptr<PreparedStatement> stmt{ conn->prepareStatement("SELECT COUNT(*) FROM User WHERE login_id = ?") };
+            stmt->setString(1, login_id);
+            unique_ptr<ResultSet> res{ stmt->executeQuery() };
+
+            if (res->next()) {
+                cout << "is_id_exist run" << endl;
+                cout << "res->getString(2)" << res->getInt(1) << endl;
+                return res->getInt(1) != 0;  // getInt(2) -> login_id에 하나라도 존재하면 1, 존재안하면 0 // 만약 존재하면 true 반환
+            }
         }
-    }*/
+        catch (const sql::SQLException& e) {
+            cerr << "SQL Error: " << e.what() << endl;
+        }
+        // 예외 발생 시 false 반환
+        return false;
+    }
+
+    bool check_validation(const httplib::Request& req, httplib::Response& res) {
+        json req_json = json::parse(req.body);
+
+        // json 데이터 추출
+        string login_id = req_json["login_id"];
+        //string login_pw = req_json["login_pw"];
+
+        if (is_id_exist(login_id)) {
+            cout << "check_validation run" << is_id_exist(login_id) << endl;
+            res.status = 400;   // 아이디 존재(true)면 400응답이 떠서 요청 실행이 안되도록
+            res.set_content(u8"ID already exists", "text/plain");
+            return false;
+        }
+        return true;
+    }
 
     // 회원테이블에 회원가입 데이터 삽입
     void insert_user(const string& login_id, const string& login_pw, const string& user_name, const string& user_addr, const string& user_phone, const string& user_email, const Birthdate user_birthdate) {
@@ -72,10 +99,10 @@ public:
 
             int result = pstmt->executeUpdate();
             if (result > 0) {
-                cout << u8"회원가입 성공" << endl;
+                cout << "sign-in success" << endl;
             }
             else {
-                cout << u8"회원가입 실패" << endl;
+                cout << "sign-in failed" << endl;
             }
         }
 
@@ -84,7 +111,7 @@ public:
         }
     }   
 
-    // JWT 발급 함수
+    // JWT 토큰 발급 함수
     string create_jwt(const string& login_id, const string& user_email) {
         try {
             jwt::jwt_object obj{ algorithm("HS256"), secret(JWT_SECRET_KEY) };
@@ -95,7 +122,7 @@ public:
             return obj.signature();
         }
         catch (const exception& e) {
-            cout << "JWT 생성 오류: " << e.what() << endl;
+            cout << "JWT Creation Error: " << e.what() << endl;
             return "";
         }
     }
@@ -123,7 +150,12 @@ public:
             birthdate.day = req_json["user_birthdate"]["day"];
 
             // 회원정보 db 삽입
-            insert_user(login_id, login_pw, user_name, user_addr, user_phone, user_email, birthdate);
+            if (check_validation(req, res)) {
+                insert_user(login_id, login_pw, user_name, user_addr, user_phone, user_email, birthdate);
+            }
+            else {
+                cout << "ID already exists" << endl;
+            }
 
             // JWT 토큰 생성
             string token = create_jwt(login_id, user_email);
@@ -178,7 +210,7 @@ public:
             string login_pw = req_json["login_pw"];
 
             if (check_data(login_id, login_pw)) {
-                cout << u8"회원가입 성공" << endl;
+                cout << "login success" << endl;
                 // 아이디 비밀번호 일치 -> 로그인 성공 시 jwt 토큰 반환
                 string token = create_jwt(login_id, req_json["user_email"]);
 

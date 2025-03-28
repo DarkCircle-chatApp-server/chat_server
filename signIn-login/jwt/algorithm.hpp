@@ -22,6 +22,7 @@ SOFTWARE.
 
 #ifndef CPP_JWT_ALGORITHM_HPP
 #define CPP_JWT_ALGORITHM_HPP
+#define OPENSSL_API_COMPAT 0x10100000L
 
 /*!
  * Most of the signing and verification code has been taken
