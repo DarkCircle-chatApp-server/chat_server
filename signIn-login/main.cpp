@@ -27,6 +27,13 @@ int main() {
 
     httplib::Server svr;    // httplib::Server 객체 생성
 
+    /*svr.Options("/login", [](const httplib::Request&, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+    });*/
+
     // "/login" URL로 들어오는 GET 요청을 handleLogin 함수로 처리
     svr.Post("/login", [&](const httplib::Request& req, httplib::Response& res) {
         signin.handle_login(req, res);
@@ -36,7 +43,7 @@ int main() {
     // 람다식 쓴 이유 : 람다 안쓰면 signin.handleSignIn() 이런식으로 외부 객체 함수에 접근 못한다고 함..시발
     // [&] : 캡처 리스트 - 현재 스코프의 변수들을 참조 방식으로 캡처(설명에 이렇게 나와있는데 그냥 람다식 앞에 붙이는 코드인듯함)
     svr.Post("/signIn", [&](const httplib::Request& req, httplib::Response& res) {
-        cout << "call success" << endl;
+        //std::cout << "Request body: " << req.body << std::endl;
         signin.handle_signIn(req, res);
     });
 
@@ -46,7 +53,7 @@ int main() {
         signin.handle_delete(req, res);
     });
 
-    // CORS 설정(다른 포트번호에서(react 포트:3000) 들어오는 요청 허용)
+    // CORS 설정(8080 포트에서 들어오는 요청 허용)
     svr.set_default_headers({
         { "Access-Control-Allow-Origin", "*" },     // 모든 도메인에서 접근 허용
         { "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE" },

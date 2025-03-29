@@ -9,14 +9,20 @@ void handleRoot(const httplib::Request&, httplib::Response& res) {
 }
 
 // test1 → 5001번 포트의 login 호출
-void handleTest1(const httplib::Request&, httplib::Response& res) {
+void routing_login(const httplib::Request& req, httplib::Response& res) {
+    /*res.set_header("Access-Control-Allow-Origin", "*");
+    res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");*/
     httplib::Client cli("http://localhost:5001");
-    auto response = cli.Get("/login");
+    auto response = cli.Post("/login", req.body, "application/json");
     if (response) {
-        res.set_content(response->body, "text/plain");
+        res.set_header("Access-Control-Allow-Origin", "*");
+        std::cout << "Backend response: " << response->body << std::endl;
+        res.set_content(response->body, response->get_header_value("Content-Type"));
     }
     else {
         res.status = 500; // 서버 오류 응답
+        res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content("Error fetching data from /login", "text/plain");
     }
 }
@@ -63,11 +69,18 @@ void handleTest4(const httplib::Request&, httplib::Response& res) {
 int main() {
     httplib::Server svr;
 
+    svr.Options("/login", [](const httplib::Request&, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204; 
+    });
+
     // "/" 경로에 대해 handleRoot 함수 연결
     svr.Get("/", handleRoot);
 
     // "/test1" 경로에 대해 handleTest1 함수 연결
-    svr.Get("/test1", handleTest1);
+    svr.Post("/login", routing_login);
 
     // "/test2" 경로에 대해 handleTest2 함수 연결
     svr.Get("/test2", handleTest2);
@@ -79,11 +92,11 @@ int main() {
     svr.Get("/test4", handleTest4);
 
     // CORS 설정
-    svr.set_default_headers({
-        { "Access-Control-Allow-Origin", "*" },     // 모든 도메인에서 접근 허용
-        { "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE" },
-        { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
-        });
+    //svr.set_default_headers({
+    //    { "Access-Control-Allow-Origin", "*" },     // 모든 도메인에서 접근 허용
+    //    { "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE" },
+    //    { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
+    //    });
 
     std::cout << "API Gateway 실행 중: http://localhost:8080" << std::endl;
     svr.listen("0.0.0.0", 8080);
