@@ -32,12 +32,42 @@ int main() {
         res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
         res.status = 204;
-    });*/
+    });
+    svr.Options("/signIn", [](const httplib::Request&, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+        });*/
 
     // "/login" URL로 들어오는 GET 요청을 handleLogin 함수로 처리
     svr.Post("/login", [&](const httplib::Request& req, httplib::Response& res) {
         signin.handle_login(req, res);
     });
+
+    svr.Post("/idCheck", [&](const httplib::Request& req, httplib::Response& res) {
+        signin.check_validation(req, res);
+    });
+
+    // 아이디 중복 체크
+    /*svr.Post("/idCheck", [&](const httplib::Request& req, httplib::Response& res) {
+        cout << "Request received at /idCheck" << endl;
+        try {
+            if (!signin.check_validation(req, res)) {
+                cout << "ID already exists, 400 response sent" << endl;
+                return;
+            }
+            res.status = 200;
+            res.set_content("ID is available", "text/plain");
+            cout << "ID is available, 200 response sent" << endl;
+        }
+        catch (const std::exception& e) {
+            res.status = 500;
+            res.set_content("Internal Server Error: " + string(e.what()), "text/plain");
+            cerr << "Error: " << e.what() << endl;
+        }
+    });*/
+
 
     // "/signIn" URL로 들어오는 POST 요청을 handleSignIn 함수로 처리
     // 람다식 쓴 이유 : 람다 안쓰면 signin.handleSignIn() 이런식으로 외부 객체 함수에 접근 못한다고 함..시발
