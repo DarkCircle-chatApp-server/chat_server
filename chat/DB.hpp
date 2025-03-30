@@ -36,3 +36,11 @@ public:
 	~MySQLConnector() {
 	}
 };
+
+// mysql 연결함수
+inline Connection* mysql_db_conn() {
+	sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
+	Connection* conn = driver->connect(SERVER_IP, USERNAME, PASSWORD);
+	conn->setSchema(DATABASE);
+	return conn;
+}

@@ -5,19 +5,6 @@
 
 using namespace sql;
 
-#define SERVER_IP	"127.0.0.1:3306"
-#define USERNAME	"root"
-#define PASSWORD	"12345"
-#define DATABASE	"chat"
-
-// mysql 연결함수
-Connection* mysql_db_conn() {
-    sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
-    Connection* conn = driver->connect(SERVER_IP, USERNAME, PASSWORD);
-    conn->setSchema(DATABASE);
-    return conn;
-}
-
 // 채팅 관련 함수
 void handleChat(const httplib::Request& req, httplib::Response& res) {
     
