@@ -33,6 +33,7 @@ void routing_signup(const httplib::Request& req, httplib::Response& res) {
     auto response = cli.Post("/signIn", req.body, "application/json");
     if (response) {
         res.set_header("Access-Control-Allow-Origin", "*");
+        res.status = response->status;
         std::cout << "Backend response: " << response->body << std::endl;
         res.set_content(response->body, response->get_header_value("Content-Type"));
     }
@@ -43,16 +44,20 @@ void routing_signup(const httplib::Request& req, httplib::Response& res) {
     }
 }
 
-// test3 → 5003번 포트의 chat 호출
-void handleTest3(const httplib::Request&, httplib::Response& res) {
-    httplib::Client cli("http://localhost:5003");
-    auto response = cli.Get("/chat");
+// test3 → 5001번 포트의 idCheck 호출
+void routing_check(const httplib::Request& req, httplib::Response& res) {
+    httplib::Client cli("http://localhost:5001");
+    auto response = cli.Post("/idCheck", req.body, "application/json");
     if (response) {
-        res.set_content(response->body, "text/plain");
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.status = response->status;
+        std::cout << "Backend response: " << response->body << std::endl;
+        res.set_content(response->body, response->get_header_value("Content-Type"));
     }
     else {
         res.status = 500; // 서버 오류 응답
-        res.set_content("Error fetching data from /chat", "text/plain");
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_content("Error fetching data from /signIn", "text/plain");
     }
 }
 
@@ -86,6 +91,13 @@ int main() {
         res.status = 204;
         });
 
+    svr.Options("/idCheck", [](const httplib::Request&, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+        });
+
     // "/" 경로에 대해 handleRoot 함수 연결
     svr.Get("/", handleRoot);
 
@@ -96,7 +108,7 @@ int main() {
     svr.Post("/signIn", routing_signup);
 
     // "/test3" 경로에 대해 handleTest3 함수 연결
-    svr.Get("/test3", handleTest3);
+    svr.Post("/idCheck", routing_check);
 
     // "/test4" 경로에 대해 handleTest4 함수 연결
     svr.Get("/test4", handleTest4);
