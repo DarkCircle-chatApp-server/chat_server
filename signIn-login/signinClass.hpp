@@ -48,7 +48,7 @@ public:
 
             if (res->next()) {
                 cout << "is_id_exist run" << endl;
-                cout << "res->getString(2)" << res->getInt(1) << endl;
+                cout << "login_id: " << login_id << ", res->getInt(1): " << res->getInt(1) << endl;
                 return res->getInt(1) != 0;  // getInt(2) -> login_id에 하나라도 존재하면 1, 존재안하면 0 // 만약 존재하면 true 반환
             }
         }
@@ -67,9 +67,10 @@ public:
         //string login_pw = req_json["login_pw"];
 
         if (is_id_exist(login_id)) {
-            cout << "check_validation run" << is_id_exist(login_id) << endl;
+            //cout << "check_validation run : " << is_id_exist(login_id) << endl;
             res.status = 400;   // 아이디 존재(true)면 400응답이 떠서 요청 실행이 안되도록
             res.set_content(u8"ID already exists", "text/plain");
+            cout << "current status: " << res.status << endl;
             return false;
         }
         return true;
@@ -127,7 +128,7 @@ public:
     }
 
     // 회원가입 처리 함수
-    void handle_signIn(const httplib::Request& req, httplib::Response& res) {
+    int handle_signIn(const httplib::Request& req, httplib::Response& res) {
         try {
 
             // 클라이언트의 요청은 json 데이터 타입으로 서버로 들어옴
@@ -149,15 +150,17 @@ public:
             birthdate.day = req_json["user_birthdate"]["day"];
 
             // 회원정보 db 삽입
-            if (check_validation(req, res)) {
-                insert_user(login_id, login_pw, user_name, user_addr, user_phone, user_email, birthdate);
+            if (!check_validation(req, res)) {
+                cout << "Validation failed. Status: " << res.status << endl;
+                res.set_content("ID already exists2", "text/plain");
+                return res.status;
             }
-            else {
-                cout << "ID already exists" << endl;
-            }
-
+            insert_user(login_id, login_pw, user_name, user_addr, user_phone, user_email, birthdate);
             // JWT 토큰 생성
             string token = create_jwt(login_id);
+            json response = { {"message", "sign-in success"}, {"token", token} };
+            res.set_content(response.dump(), "application/json");
+            return 200;
 
             // 회원가입 성공하면 클라이언트에 jwt토큰 반환
             // jwt 토큰
@@ -165,15 +168,15 @@ public:
                 "message": "sign-in success",
                 "token" : "sdjflsSJALFDJASLDFsjdlfkjSDFJLsdfj1321sdlkfjs123..." // 암호화된 데이터
             }*/
-            json response = { {"message", "sign-in success"}, {"token", token} };
 
             // 처리된 결과 응답 반환
             // response.dump() : json 데이터({ {"message", "sign-in success"}, {"token", token} }) -> 문자열 변환한 값
-            res.set_content(response.dump(), "application/json");
         }
         catch (const SQLException& e) {
             cout << "INSERT Error" << e.what() << endl;
-        } 
+            res.set_content("Internal server error", "text/plain");
+        }
+        return 500;
     }
 
     // 입력데이터와 회원테이블 데이터 비교

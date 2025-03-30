@@ -1,7 +1,7 @@
 #include "httplib.h"
 #include <iostream>
 
-// 각 핸들러 함수를 정의
+// 각 핸들러 함수 정의
 
 // 기본 API Gateway 엔드포인트
 void handleRoot(const httplib::Request&, httplib::Response& res) {
@@ -28,14 +28,17 @@ void routing_login(const httplib::Request& req, httplib::Response& res) {
 }
 
 // test2 → 5001번 포트의 signIn 호출
-void handleTest2(const httplib::Request&, httplib::Response& res) {
+void routing_signup(const httplib::Request& req, httplib::Response& res) {
     httplib::Client cli("http://localhost:5001");
-    auto response = cli.Get("/signIn");
+    auto response = cli.Post("/signIn", req.body, "application/json");
     if (response) {
-        res.set_content(response->body, "text/plain");
+        res.set_header("Access-Control-Allow-Origin", "*");
+        std::cout << "Backend response: " << response->body << std::endl;
+        res.set_content(response->body, response->get_header_value("Content-Type"));
     }
     else {
         res.status = 500; // 서버 오류 응답
+        res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content("Error fetching data from /signIn", "text/plain");
     }
 }
@@ -76,6 +79,13 @@ int main() {
         res.status = 204; 
     });
 
+    svr.Options("/signIn", [](const httplib::Request&, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+        });
+
     // "/" 경로에 대해 handleRoot 함수 연결
     svr.Get("/", handleRoot);
 
@@ -83,7 +93,7 @@ int main() {
     svr.Post("/login", routing_login);
 
     // "/test2" 경로에 대해 handleTest2 함수 연결
-    svr.Get("/test2", handleTest2);
+    svr.Post("/signIn", routing_signup);
 
     // "/test3" 경로에 대해 handleTest3 함수 연결
     svr.Get("/test3", handleTest3);
