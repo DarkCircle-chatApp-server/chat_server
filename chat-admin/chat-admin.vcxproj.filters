@@ -21,8 +21,28 @@
     <ClCompile Include="DB_admin.hpp">
       <Filter>헤더 파일</Filter>
     </ClCompile>
-    <ClCompile Include="chat_freeze.hpp">
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="chat_ban.hpp">
       <Filter>헤더 파일</Filter>
-    </ClCompile>
+    </ClInclude>
+    <ClInclude Include="user_check.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="admin_select_delete.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="exception.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="prepared_statement.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="resultset.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="httplib.h">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

@@ -138,7 +138,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="admin_select_delete.hpp" />
     <ClInclude Include="chat_ban.hpp" />
+    <ClInclude Include="exception.h" />
+    <ClInclude Include="httplib.h" />
+    <ClInclude Include="prepared_statement.h" />
+    <ClInclude Include="resultset.h" />
     <ClInclude Include="user_check.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
