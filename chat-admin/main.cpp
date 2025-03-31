@@ -2,7 +2,7 @@
 #include <iostream>
 #include"DB_admin.hpp"
 #include "chat_ban.hpp"
-#include "user_check.hpp"
+
 
 #include "admin_select_delete.hpp"
 
@@ -17,12 +17,7 @@ int main() {
     MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
     
     httplib::Server svr;    // httplib::Server 객체 생성
-    User_check User_check(db.getConnection());
-    // 회원 목록 조회
-    svr.Get("/chat/admin/check", [&](const httplib::Request& req, httplib::Response& res) {
-        User_check.handle_user_check(req, res);
-    });
-
+    
     SetConsoleOutputCP(CP_UTF8);
     MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
     Select_delete select_delete(db.getConnection());  // getConnection()에서 반환된 MySQLConnector의 conn을 signin객체에 주입
@@ -38,18 +33,18 @@ int main() {
     cin >> user_id2;
     select_delete.Delete_Message(user_id2);    // 메세지 삭제
 
-    //User_ban user_ban(db.getConnection());
-    //// 밴 처리
-    //svr.Put("/chat/admin/ban", [&](const httplib::Request& req, httplib::Response& res) {
-    //    user_ban.handle_user_ban(req, res);
-    //    });
+    User_ban user_ban(db.getConnection());
+    // 밴 처리
+    svr.Put("/chat/admin/ban", [&](const httplib::Request& req, httplib::Response& res) {
+        user_ban.handle_user_ban(req, res);
+        });
 
-    //// 밴해제 처리
-    //User_ban user_unban(db.getConnection());
+    // 밴해제 처리
+    User_ban user_unban(db.getConnection());
 
-    //svr.Put("/chat/admin/unban", [&](const httplib::Request& req, httplib::Response& res) {
-    //    user_unban.handle_user_unban(req, res);
-    //    });
+    svr.Put("/chat/admin/unban", [&](const httplib::Request& req, httplib::Response& res) {
+        user_unban.handle_user_unban(req, res);
+        });
 
     // CORS 설정
     svr.set_default_headers({
