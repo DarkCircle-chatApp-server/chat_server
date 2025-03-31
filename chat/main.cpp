@@ -1,26 +1,43 @@
-#include "httplib.h"
 #include <iostream>
+#include "httplib.h"
+#include "chat_send.hpp"
+#include "chatDB.hpp"
+#include "test.hpp"
 
-// Ã¤ÆÃ °ü·Ã ÇÔ¼ö
+using namespace sql;
+
+// ì±„íŒ… ê´€ë ¨ í•¨ìˆ˜
 void handleChat(const httplib::Request& req, httplib::Response& res) {
-    
+
+    // ë‚´ë¶€ ë¡œì§ ê¸°ëŠ¥
+
     res.set_content("chat", "text/plain");
 }
 
 int main() {
-    httplib::Server svr;    // httplib::Server °´Ã¼ »ı¼º
 
-    svr.Get("/chat", handleChat);
+    // ë©”ì¸í•¨ìˆ˜ì—ì„œ ì„ì‹œë¡œ ëŒë ¤ë³¸ ì½”ë“œ
+    Connection* conn = mysql_db_conn();
 
-    // CORS ¼³Á¤
+    Chat_send test(1, "", "", conn);
+
+    httplib::Server svr;    // httplib::Server ê°ì²´ ìƒì„±
+
+    //svr.Get("/chat", handleChat);
+
+    svr.Post("/chat", [&](const httplib::Request& req, httplib::Response& res) {        // json ìš”ì²­ë°›ê¸° ìœ„í•´ chat_insert()í•¨ìˆ˜ ì—°ë™
+        test.insert_chat(req, res);
+        });
+
+    // CORS ì„¤ì •
     svr.set_default_headers({
-        { "Access-Control-Allow-Origin", "*" },     // ¸ğµç µµ¸ŞÀÎ¿¡¼­ Á¢±Ù Çã¿ë
+        { "Access-Control-Allow-Origin", "*" },     // ëª¨ë“  ë„ë©”ì¸ì—ì„œ ì ‘ê·¼ í—ˆìš©
         { "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE" },
         { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
         });
 
-    std::cout << "Chat Service ½ÇÇà Áß: http://localhost:5003" << std::endl;
-    svr.listen("0.0.0.0", 5003); // ¼­¹ö ½ÇÇà
+    std::cout << "Chat Service ì‹¤í–‰ ì¤‘: http://localhost:5003" << std::endl;
+    svr.listen("0.0.0.0", 5003); // ì„œë²„ ì‹¤í–‰
 
-    // return 0; ÇÏ¸é ¾È µÊ, ¼­¹ö´Â Á¾·áµÉ ¶§±îÁö °è¼Ó ½ÇÇàµÇ¾î¾ß ÇÔ
+    // return 0; í•˜ë©´ ì•ˆ ë¨, ì„œë²„ëŠ” ì¢…ë£Œë  ë•Œê¹Œì§€ ê³„ì† ì‹¤í–‰ë˜ì–´ì•¼ í•¨
 }
