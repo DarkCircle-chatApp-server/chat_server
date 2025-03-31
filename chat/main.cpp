@@ -2,25 +2,33 @@
 #include "httplib.h"
 #include "chat_send.hpp"
 #include "DB.hpp"
+#include "test.hpp"
 
 using namespace sql;
-
+using json = nlohmann::json;
 // 채팅 관련 함수
 void handleChat(const httplib::Request& req, httplib::Response& res) {
-    
+
     // 내부 로직 기능
 
     res.set_content("chat", "text/plain");
 }
 
 int main() {
+    SetConsoleOutputCP(CP_UTF8);
+    MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
+
+    httplib::Server svr;    // httplib::Server 객체 생성
 
     // 메인함수에서 임시로 돌려본 코드
     Connection* conn = mysql_db_conn();
 
     Chat_send test(1, "", "", conn);
 
-    httplib::Server svr;    // httplib::Server 객체 생성
+    Message select(db.getConnection());  // GET 요청 처리
+    svr.Get("/chat/messages", [&](const httplib::Request& req, httplib::Response& res) {
+        select.handleMessages(req, res);
+        });
 
     //svr.Get("/chat", handleChat);
 
@@ -37,6 +45,6 @@ int main() {
 
     std::cout << "Chat Service 실행 중: http://localhost:5003" << std::endl;
     svr.listen("0.0.0.0", 5003); // 서버 실행
-    
+
     // return 0; 하면 안 됨, 서버는 종료될 때까지 계속 실행되어야 함
 }
