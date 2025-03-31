@@ -76,11 +76,10 @@ public:
         }
         catch (const SQLException& e) {
             cout << "Query failed: " << e.what() << endl;
-          
+            res.status = 500;
+            res.set_content("{\"error\": \"Database query failed\"}", "application/json");
         }
     }
-
-
     void Update_Status(const int& user_id) {
         try {
             // 현재 user_status 확인
