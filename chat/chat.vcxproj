@@ -138,6 +138,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chat_send.hpp" />
+    <ClInclude Include="test.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
