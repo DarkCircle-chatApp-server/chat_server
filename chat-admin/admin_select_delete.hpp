@@ -57,7 +57,7 @@ public:
                 user["login_id"] = res->getString("login_id");
                 user["user_name"] = res->getString("user_name");
                 user["user_status"] = res->getString("user_status");
-
+                
                 result_json.push_back(user);
             }
         }
@@ -145,6 +145,7 @@ public:
     //        cout << "login failed" << e.what() << endl;
     //    }
     //}
+
     void handle_admin_user_delete(const httplib::Request& req, httplib::Response& res) {
         try {
             json req_json = json::parse(req.body);
@@ -158,6 +159,7 @@ public:
             cout << "login failed" << e.what() << endl;
         }
     }
+
     void handle_amdim_message_delete(const httplib::Request& req, httplib::Response& res) {
         try {
             json req_json = json::parse(req.body);
