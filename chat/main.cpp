@@ -1,13 +1,14 @@
 #include <iostream>
 #include "httplib.h"
 #include "chat_send.hpp"
-#include "DB.hpp"
+#include "chatDB.hpp"
+#include "test.hpp"
 
 using namespace sql;
 
 // 채팅 관련 함수
 void handleChat(const httplib::Request& req, httplib::Response& res) {
-    
+
     // 내부 로직 기능
 
     res.set_content("chat", "text/plain");
@@ -37,6 +38,6 @@ int main() {
 
     std::cout << "Chat Service 실행 중: http://localhost:5003" << std::endl;
     svr.listen("0.0.0.0", 5003); // 서버 실행
-    
+
     // return 0; 하면 안 됨, 서버는 종료될 때까지 계속 실행되어야 함
 }
