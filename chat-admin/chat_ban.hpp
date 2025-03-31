@@ -43,7 +43,6 @@ public:
 
 			// json 데이터 추출
 			int user_id = req_json["user_id"];
-			int user_status = req_json["user_status"];
 
 			// 밴 처리
 			User_ban_func(user_id);
@@ -61,7 +60,6 @@ public:
 
 			// json 데이터 추출
 			int user_id = req_json["user_id"];
-			int user_status = req_json["user_status"];
 
 			// 밴 해제 처리
 			User_unban_func(user_id);

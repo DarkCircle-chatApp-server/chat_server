@@ -17,9 +17,6 @@ int main() {
     MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
     
     httplib::Server svr;    // httplib::Server 객체 생성
-    
-    SetConsoleOutputCP(CP_UTF8);
-    MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
     Select_delete select_delete(db.getConnection());  // getConnection()에서 반환된 MySQLConnector의 conn을 signin객체에 주입
     select_delete.All_Select();  // user 테이블 조회
     string user_id;
