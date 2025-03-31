@@ -28,7 +28,7 @@ int main() {
         });
 
     Select_delete message_delete(db.getConnection());   // 메세지 삭제
-    svr.Put("/chat/admin/user_delete", [&](const httplib::Request& req, httplib::Response& res) {
+    svr.Put("/chat/admin/message_delete", [&](const httplib::Request& req, httplib::Response& res) {
         message_delete.handle_amdim_message_delete(req, res);
         });
 
