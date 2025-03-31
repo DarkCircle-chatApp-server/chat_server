@@ -7,10 +7,7 @@
 #include<time.h>
 #include <memory>
 #include <thread>
-#include "prepared_statement.h"
-#include "resultset.h"
-#include "exception.h"
-#include "DB.hpp"
+#include "DB_admin.hpp"
 
 
 using namespace std;
@@ -151,5 +148,45 @@ public:
             cout << u8"실패: " << e.what() << endl;
         }
     }
+    void handle_admin_select(const httplib::Request& req, httplib::Response& res) {
+        try {
+            json req_json = json::parse(req.body);
+
+            All_Select();
+            res.set_content("Ban sucess", "text/plain");
+        }
+        catch (const SQLException& e) {
+            cout << "login failed" << e.what() << endl;
+        }
+    }
+    void handle_admin_user_delete(const httplib::Request& req, httplib::Response& res) {
+        try {
+            json req_json = json::parse(req.body);
+
+            // json 데이터 추출
+            string user_id = req_json["user_id"];
+
+            Update_Status(user_id);
+            res.set_content("user delete sucess", "text/plain");
+        }
+        catch (const SQLException& e) {
+            cout << "login failed" << e.what() << endl;
+        }
+    }
+    void handle_amdim_message_delete(const httplib::Request& req, httplib::Response& res) {
+        try {
+            json req_json = json::parse(req.body);
+
+            string user_id = req_json["user_id"];
+
+            // 밴 처리
+            Delete_Message(user_id);
+            res.set_content("select sucess", "text/plain");
+        }
+        catch (const SQLException& e) {
+            cout << "login failed" << e.what() << endl;
+        }
+    }
+
 
 };
