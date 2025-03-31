@@ -18,13 +18,13 @@ int main() {
 
     
     Select_delete select(db.getConnection());   // 조회
-    svr.Put("/chat/admin/user_select", [&](const httplib::Request& req, httplib::Response& res) {
+    svr.Get("/chat/admin/user_select", [&](const httplib::Request& req, httplib::Response& res) {
         select.handle_admin_select(req, res);
         });
 
     Select_delete user_delete(db.getConnection());  // 유저 삭제
     svr.Put("/chat/admin/user_delete", [&](const httplib::Request& req, httplib::Response& res) {
-        user_delete.handle_admin_select(req, res);
+        user_delete.handle_admin_user_delete(req, res);
         });
 
     Select_delete message_delete(db.getConnection());   // 메세지 삭제

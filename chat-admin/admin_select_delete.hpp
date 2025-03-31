@@ -44,11 +44,11 @@ public:
             cout << "Query failed: " << e.what() << endl;
         }
     }
-    void Update_Status(const string& user_id) {
+    void Update_Status(const int& user_id) {
         try {
             // 현재 user_status 확인
             unique_ptr<PreparedStatement> checkStmt(conn->prepareStatement("SELECT user_status FROM User WHERE user_id = ?"));
-            checkStmt->setString(1, user_id);
+            checkStmt->setInt(1, user_id);
             unique_ptr<ResultSet> res(checkStmt->executeQuery());
 
             if (res->next()) {
@@ -61,7 +61,7 @@ public:
                 else {
                     // user_status 변경 (회원 삭제 처리)
                     unique_ptr<PreparedStatement> pstmt(conn->prepareStatement("UPDATE User SET user_status = 2 WHERE user_id = ?"));
-                    pstmt->setString(1, user_id);   // 첫번째 물음표 지정
+                    pstmt->setInt(1, user_id);   // 첫번째 물음표 지정
                     int Status_Change = pstmt->executeUpdate(); // executeUpdate()는 행의 개수를 반환
 
                     if (Status_Change > 0) { // 삭제할 행이 있으면 실행
@@ -79,10 +79,10 @@ public:
         }
     }
 
-    void Delete_Message(const string& user_id) {      //  메세지 삭제
+    void Delete_Message(const int& msg_id) {      //  메세지 삭제
         try {
-            unique_ptr<PreparedStatement> pstmt(conn->prepareStatement("DELETE FROM Message WHERE user_id = ?"));
-            pstmt->setString(1, user_id);
+            unique_ptr<PreparedStatement> pstmt(conn->prepareStatement("DELETE FROM Message WHERE msg_id = ?"));
+            pstmt->setInt(1, msg_id);
             int Message_userid = pstmt->executeUpdate();
 
             if (Message_userid > 0) {
@@ -97,63 +97,12 @@ public:
         }
     }
  
-
-    void DelayedResetStatus(string user_id) {
-        this_thread::sleep_for(chrono::seconds(2));         // 2초 
-        try {
-            unique_ptr<PreparedStatement> resetStmt(conn->prepareStatement("UPDATE User SET user_status = 1 WHERE user_id = ?"));
-            resetStmt->setString(1, user_id);
-            int Reset_Change = resetStmt->executeUpdate();
-
-            if (Reset_Change > 0) {
-                cout << "\n" << u8"User ID " << user_id << u8" 상태가 1으로 복구되었습니다." << endl;
-            }
-            else {
-                cout << "\n" << u8"복구 실패: user_id " << user_id << u8" 찾을 수 없음" << endl;
-            }
-        }
-        catch (SQLException& e) {
-            cout << "\n" << u8"복구 실패: " << e.what() << endl;
-        }
-    }
-
-    void Update_Status2(const string& user_id) {
-        try {
-            unique_ptr<PreparedStatement> checkStmt(conn->prepareStatement("SELECT user_status FROM User WHERE user_id = ?"));
-            checkStmt->setString(1, user_id);
-            unique_ptr<ResultSet> res(checkStmt->executeQuery());
-
-            if (res->next()) {
-                int current_status = res->getInt("user_status");
-                if (current_status == 2) {
-                    cout << u8"이미 삭제된 user_id: " << user_id << endl;
-                    return;
-                }
-
-                unique_ptr<PreparedStatement> pstmt(conn->prepareStatement("UPDATE User SET user_status = 2 WHERE user_id = ?"));
-                pstmt->setString(1, user_id);
-                int Status_Change = pstmt->executeUpdate();
-
-                if (Status_Change > 0) {
-                    cout << u8"User ID " << user_id << u8" 상태가 2로 변경되었습니다." << endl;
-                    thread resetThread(&Select_delete::DelayedResetStatus, this, user_id);
-                    resetThread.detach(); // 호출 즉시 스레드 리소스(메모리 영역)를 해제
-                }
-                else {
-                    cout << u8"업데이트 실패: user_id " << user_id << u8"을(를) 찾을 수 없음" << endl;
-                }
-            }
-        }
-        catch (SQLException& e) {
-            cout << u8"실패: " << e.what() << endl;
-        }
-    }
     void handle_admin_select(const httplib::Request& req, httplib::Response& res) {
         try {
             json req_json = json::parse(req.body);
 
             All_Select();
-            res.set_content("Ban sucess", "text/plain");
+            res.set_content("Select sucess", "text/plain");
         }
         catch (const SQLException& e) {
             cout << "login failed" << e.what() << endl;
@@ -164,7 +113,7 @@ public:
             json req_json = json::parse(req.body);
 
             // json 데이터 추출
-            string user_id = req_json["user_id"];
+            int user_id = req_json["user_id"];
 
             Update_Status(user_id);
             res.set_content("user delete sucess", "text/plain");
@@ -177,11 +126,11 @@ public:
         try {
             json req_json = json::parse(req.body);
 
-            string user_id = req_json["user_id"];
+            int msg_id = req_json["msg_id"];
 
             // 밴 처리
-            Delete_Message(user_id);
-            res.set_content("select sucess", "text/plain");
+            Delete_Message(msg_id);
+            res.set_content("message delete sucess", "text/plain");
         }
         catch (const SQLException& e) {
             cout << "login failed" << e.what() << endl;
