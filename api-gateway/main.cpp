@@ -61,16 +61,46 @@ void routing_check(const httplib::Request& req, httplib::Response& res) {
     }
 }
 
-// test4 → 5004번 포트의 chat admin 호출
-void handleTest4(const httplib::Request&, httplib::Response& res) {
-    httplib::Client cli("http://localhost:5004");
-    auto response = cli.Get("/chat/admin");
+// 5001번 포트의 /statCheck/:user_id 호출
+void routing_statCheck(const httplib::Request& req, httplib::Response& res) {
+    if (req.path_params.find("login_id") == req.path_params.end()) {
+        res.status = 400;
+        res.set_content("login_id가 없습니다.", "text/plain");
+        return;
+    }
+    std::string login_id = req.path_params.at("login_id");
+    httplib::Client cli("http://localhost:5001");
+    std::string url = "/statCheck/" + login_id;
+    auto response = cli.Get(url.c_str());
     if (response) {
-        res.set_content(response->body, "text/plain");
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_content(response->body, "application/json");
     }
     else {
-        res.status = 500; // 서버 오류 응답
-        res.set_content("Error fetching data from /chat/admin", "text/plain");
+        res.status = 500;
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_content("Error fetching data from /statCheck", "text/plain");
+    }
+}
+
+void routing_getName(const httplib::Request& req, httplib::Response& res) {
+    if (req.path_params.find("login_id") == req.path_params.end()) {
+        res.status = 400;
+        res.set_content("login_id가 없습니다.", "text/plain");
+        return;
+    }
+    std::string login_id = req.path_params.at("login_id");
+    httplib::Client cli("http://localhost:5001");
+    std::string url = "/getName/" + login_id;
+    auto response = cli.Get(url.c_str());
+    if (response) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_content(response->body, "application/json");
+    }
+    else {
+        res.status = 500;
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_content("Error fetching data from /statCheck", "text/plain");
     }
 }
 
@@ -98,6 +128,20 @@ int main() {
         res.status = 204;
         });
 
+    svr.Options("/statCheck/:login_id", [](const httplib::Request&, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+    });
+
+    svr.Options("/getName/:login_id", [](const httplib::Request&, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+        });
+
     // "/" 경로에 대해 handleRoot 함수 연결
     svr.Get("/", handleRoot);
 
@@ -111,7 +155,10 @@ int main() {
     svr.Post("/idCheck", routing_check);
 
     // "/test4" 경로에 대해 handleTest4 함수 연결
-    svr.Get("/test4", handleTest4);
+    svr.Get("/statCheck/:login_id", routing_statCheck);
+
+    svr.Get("/getName/:login_id", routing_getName);
+
 
     // CORS 설정
     //svr.set_default_headers({

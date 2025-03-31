@@ -24,6 +24,8 @@ int main() {
     SetConsoleOutputCP(CP_UTF8);    // 콘솔 출력 인코딩. 한글입력값 왼쪽에 u8 붙여줄 것
     MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
     SignIn signin(db.getConnection());  // getConnection()에서 반환된 MySQLConnector의 conn을 signin객체에 주입
+    cout << "test start" << endl;
+    //signin.get_user_status("admin12345");
 
     httplib::Server svr;    // httplib::Server 객체 생성
 
@@ -44,9 +46,18 @@ int main() {
     svr.Post("/login", [&](const httplib::Request& req, httplib::Response& res) {
         signin.handle_login(req, res);
     });
-
+    
     svr.Post("/idCheck", [&](const httplib::Request& req, httplib::Response& res) {
         signin.check_validation(req, res);
+    });
+
+
+    svr.Get("/statCheck/:login_id", [&](const httplib::Request& req, httplib::Response& res) {
+        signin.check_user_status(req, res);
+    });
+
+    svr.Get("/getName/:login_id", [&](const httplib::Request& req, httplib::Response& res) {
+        signin.show_name(req, res);
     });
 
     // 아이디 중복 체크

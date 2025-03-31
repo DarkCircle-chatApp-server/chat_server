@@ -39,7 +39,97 @@ public:
     SignIn(Connection* dbconn) : conn(dbconn) {      // 의존성 주입. MySQLConnector 객체로부터 주입받음
 
     }
+    //~SignIn() {
+    //    //delete conn;
+    //}
+
+    string get_name(const string& login_id) {
+        try {
+            unique_ptr<PreparedStatement> stmt{ conn->prepareStatement("SELECT user_name FROM User WHERE login_id = ?") };
+            stmt->setString(1, login_id);
+            unique_ptr<ResultSet> res{ stmt->executeQuery() };
+
+            if (res->next()) {
+                string user_name = res->getString(1);
+                cout << user_name << endl;
+                return user_name;
+            }
+            else {
+                cerr << "No users" << endl;
+                return "Unknown";
+            }
+        }
+        catch (const SQLException& e) {
+            cerr << "SQL Error: " << e.what() << endl;
+            return "Unknown";
+        }
+    }
+
+    void show_name(const httplib::Request& req, httplib::Response& res) {
+        if (req.path_params.find("login_id") == req.path_params.end()) {
+            res.status = 400;
+            res.set_content("{\"error\": \"user_name이 없습니다.\"}", "application/json");
+            return;
+        }
+        string login_id = req.path_params.at("login_id");  // api url에서 login_id 추출
+        string user_name = get_name(login_id);
+
+        if (user_name != "Unknown") {
+            cout << "request success" << endl;
+            string json_response = "{\"user_name\": \"" + user_name + "\"}";
+            res.set_content(json_response, "application/json");
+        }
+        else {
+            res.status = 404;
+            res.set_content("{\"error\": \"No users\"}", "application/json");
+        }
+    }
+
+    // user_status값 조회
+    int get_user_status(const string& login_id) {
+        try {
+            unique_ptr<PreparedStatement> stmt{ conn->prepareStatement("SELECT user_status FROM User WHERE login_id = ?") };
+            stmt->setString(1, login_id);
+            unique_ptr<ResultSet> res{stmt->executeQuery()};
+
+            if (res->next()) {
+                //cout << "test success" << endl;
+                int user_status = res->getInt(1);
+                cout << user_status << endl;
+                return user_status;
+            }
+            else {
+                cerr << "No users" << endl;
+                return -1;
+            }
+        }
+        catch (const SQLException& e) {
+            cerr << "SQL Error: " << e.what() << endl;
+            return -1;
+        }
+    }
+
+    void check_user_status(const httplib::Request& req, httplib::Response& res) {
+        if (req.path_params.find("login_id") == req.path_params.end()) {
+            res.status = 400;
+            res.set_content("{\"error\": \"login_id가 없습니다.\"}", "application/json");
+            return;
+        }
+        string login_id = req.path_params.at("login_id");  // api url에서 login_id 추출
+        int user_status = get_user_status(login_id);
+
+        if (user_status != -1) {
+            cout << "request success" << endl;
+            string json_response = "{\"user_status\": " + to_string(user_status) + "}";
+            res.set_content(json_response, "application/json");
+        }
+        else {
+            res.status = 404;
+            res.set_content("{\"error\": \"No users\"}", "application/json");
+        }
+    }
     
+    // 아이디 중복 체크
     bool is_id_exist(const string& login_id) {
         try {
             unique_ptr<PreparedStatement> stmt{ conn->prepareStatement("SELECT COUNT(*) FROM User WHERE login_id = ?") };
@@ -52,7 +142,7 @@ public:
                 return res->getInt(1) != 0;  // getInt(2) -> login_id에 하나라도 존재하면 1, 존재안하면 0 // 만약 존재하면 true 반환
             }
         }
-        catch (const sql::SQLException& e) {
+        catch (const SQLException& e) {
             cerr << "SQL Error: " << e.what() << endl;
         }
         // 예외 발생 시 false 반환
