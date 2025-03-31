@@ -23,15 +23,15 @@ public:
 
 	// 밴 기능
 	void User_ban_func(const int& user_id) {
-		unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("UPDATE User SET user_status = 3 WHERE user_id = ?") };
-		// "user_id = 1" 의 부분은 클릭시 해당 user_id로 변경할 것
+		unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("UPDATE User SET user_status = 3 WHERE user_id = ?") };					
+		// user_id의 status 3(채팅금지)로
 		pstmt->setInt(1, user_id);
 		pstmt->executeUpdate();
 	}
 	// 밴 해제 기능
 	void User_unban_func(const int& user_id) {
-		unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("UPDATE User SET user_status = 1 WHERE user_id = ?") };
-		// "user_id = 1" 의 부분은 클릭시 해당 user_id로 변경할 것
+		unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("UPDATE User SET user_status = 1 WHERE user_id = ?") };					
+		// user_id의 status 1(일반상태)로
 		pstmt->setInt(1, user_id);
 		pstmt->executeUpdate();
 	}
@@ -46,10 +46,10 @@ public:
 
 			// 밴 처리
 			User_ban_func(user_id);
-			res.set_content("Ban sucess", "text/plain");
+			res.set_content("Ban sucess", "text/plain");		// 응답호출
 		}
 		catch (const SQLException& e) {
-			cout << "login failed" << e.what() << endl;
+			cout << "Ban failed" << e.what() << endl;
 		}
 	}
 
@@ -63,10 +63,10 @@ public:
 
 			// 밴 해제 처리
 			User_unban_func(user_id);
-			res.set_content("Unban sucess", "text/plain");
+			res.set_content("Unban sucess", "text/plain");		// 응답호출
 		}
 		catch (const SQLException& e) {
-			cout << "login failed" << e.what() << endl;
+			cout << "Unban failed" << e.what() << endl;
 		}
 	}
 };
