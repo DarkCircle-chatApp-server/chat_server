@@ -1,8 +1,11 @@
+#define NDEBUG
 #include "httplib.h"    // httplib 헤더파일 추가
 #include <iostream>
 #include "DBmodule.hpp"
 #include "signinClass.hpp"
 #include <Windows.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 //#include <nlohmann/json.hpp>  // JSON 파싱을 위한 라이브러리
 
 using namespace std;
@@ -21,6 +24,9 @@ using namespace std;
 // 헤더파일 예시는 지금 이 프로젝트 안의 test1.hpp, test2.hpp 헤더파일 확인할 것
 
 int main() {
+    OpenSSL_add_all_algorithms();
+    SSL_load_error_strings();
+    SSL_library_init();
     SetConsoleOutputCP(CP_UTF8);    // 콘솔 출력 인코딩. 한글입력값 왼쪽에 u8 붙여줄 것
     MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
     SignIn signin(db.getConnection());  // getConnection()에서 반환된 MySQLConnector의 conn을 signin객체에 주입
@@ -58,6 +64,10 @@ int main() {
 
     svr.Get("/getName/:login_id", [&](const httplib::Request& req, httplib::Response& res) {
         signin.show_name(req, res);
+    });
+
+    svr.Get("/showId/:login_id", [&](const httplib::Request& req, httplib::Response& res) {
+        signin.show_id(req, res);
     });
 
     // 아이디 중복 체크
