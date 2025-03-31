@@ -33,19 +33,6 @@ int main() {
         });
 
 
-    Select_delete select_delete(db.getConnection());  // getConnection()에서 반환된 MySQLConnector의 conn을 signin객체에 주입
-    select_delete.All_Select();  // user 테이블 조회
-    string user_id;
-    cout << u8"회원 삭제할 user_id: ";
-    cin >> user_id;
-    select_delete.Update_Status(user_id); //  user_id의 user_status를 2로 변경
-    //select_delete.Update_Status2(user_id); //  2초후 자동으로 원복 실험 -> 유저가 회원탈퇴시 복귀가능기간 제공 위해
-
-    string user_id2;
-    cout << u8"메세지 삭제할 user_id: ";
-    cin >> user_id2;
-    select_delete.Delete_Message(user_id2);    // 메세지 삭제
-
 
     User_ban user_ban(db.getConnection());
     // 밴 처리
