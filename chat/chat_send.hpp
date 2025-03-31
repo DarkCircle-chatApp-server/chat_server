@@ -49,25 +49,32 @@ public:
 
 		if (user_status != 3) {			// 임시 차단이 아니면 아래 코드 실행
 
-			// json 타입의 데이터를 string으로 변환
+			// json 타입의 입력 받은 데이터를 변환
 			json req_json = json::parse(req.body);
 			int user_id = req_json["user_id"];
 			string msg_text = req_json["msg_text"];
 
-			cout << "채팅 입력 ";
-			getline(cin, msg_text);		// 채팅 입력 받기
+			//cout << "채팅 입력 ";
+			//getline(cin, msg_text);		// 채팅 입력 받기
+
+			conn->setAutoCommit(false);		// 트랜잭션 시작(오토커밋 끄기)
 
 			try {		// 입력 받은 채팅 쿼리 함수로 DB에 추가
 				unique_ptr<PreparedStatement> pstmt(conn->prepareStatement("INSERT INTO Message (user_id, msg_text) VALUES(?, ?)"));
 				pstmt->setInt(1, user_id);
 				pstmt->setString(2, msg_text);
 				pstmt->executeUpdate();
+				
+				conn->commit();			// 트랜잭션 커밋 (성공)
 			}
 			catch (SQLException& e) {		// 쿼리 연결 오류
+				conn->rollback();			// 트랜잭션 롤백(실패시 원상복구)
 				cout << "MySQL Connection Failed: " << e.what() << endl;
 				cout << "SQL Error Code: " << e.getErrorCode() << endl;
 				cout << "SQL State: " << e.getSQLState() << endl;
 			}
+
+			conn->setAutoCommit(true);			// sql 실행이 끝난 후 오토커밋 켜기
 		}
 		else {
 			//cout << "차단 상태" << endl;

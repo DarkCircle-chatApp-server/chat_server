@@ -15,19 +15,18 @@ void handleChat(const httplib::Request& req, httplib::Response& res) {
 
 int main() {
 
-    /* // 메인함수에서 임시로 돌려본 코드
+    // 메인함수에서 임시로 돌려본 코드
     Connection* conn = mysql_db_conn();
 
-    Chat_send hong(1, "hello", "12", conn);
-
-    hong.print_chat();
-    hong.insert_chat();
-    hong.print_chat();
-    */
+    Chat_send test(1, "", "", conn);
 
     httplib::Server svr;    // httplib::Server 객체 생성
 
-    svr.Get("/chat", handleChat);
+    //svr.Get("/chat", handleChat);
+
+    svr.Post("/chat", [&](const httplib::Request& req, httplib::Response& res) {        // json 요청받기 위해 chat_insert()함수 연동
+        test.insert_chat(req, res);
+        });
 
     // CORS 설정
     svr.set_default_headers({
