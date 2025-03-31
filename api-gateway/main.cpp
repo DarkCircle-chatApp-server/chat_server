@@ -104,6 +104,43 @@ void routing_getName(const httplib::Request& req, httplib::Response& res) {
     }
 }
 
+void routing_showId(const httplib::Request& req, httplib::Response& res) {
+    if (req.path_params.find("login_id") == req.path_params.end()) {
+        res.status = 400;
+        res.set_content("login_id가 없습니다.", "text/plain");
+        return;
+    }
+    std::string login_id = req.path_params.at("login_id");
+    httplib::Client cli("http://localhost:5001");
+    std::string url = "/showId/" + login_id;
+    auto response = cli.Get(url.c_str());
+    if (response) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_content(response->body, "application/json");
+    }
+    else {
+        res.status = 500;
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_content("Error fetching data from /statCheck", "text/plain");
+    }
+}
+
+void routing_ban(const httplib::Request& req, httplib::Response& res) {
+    httplib::Client cli("http://localhost:5004");
+    auto response = cli.Put("/chat/admin/ban", req.body, "application/json");
+    if (response) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.status = response->status;
+        std::cout << "Backend response: " << response->body << std::endl;
+        res.set_content(response->body, response->get_header_value("Content-Type"));
+    }
+    else {
+        res.status = 500; // 서버 오류 응답
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_content("Error fetching data from /signIn", "text/plain");
+    }
+}
+
 int main() {
     httplib::Server svr;
 
@@ -142,6 +179,20 @@ int main() {
         res.status = 204;
         });
 
+    svr.Options("/showId/:login_id", [](const httplib::Request&, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+        });
+
+    svr.Options("/chat/admin/ban", [](const httplib::Request&, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+        });
+
     // "/" 경로에 대해 handleRoot 함수 연결
     svr.Get("/", handleRoot);
 
@@ -158,6 +209,12 @@ int main() {
     svr.Get("/statCheck/:login_id", routing_statCheck);
 
     svr.Get("/getName/:login_id", routing_getName);
+
+    svr.Get("/showId/:login_id", routing_showId);
+
+    svr.Put("/chat/admin/ban", routing_ban);
+
+
 
 
     // CORS 설정
