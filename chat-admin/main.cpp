@@ -2,8 +2,6 @@
 #include <iostream>
 #include"DB_admin.hpp"
 #include "chat_ban.hpp"
-
-
 #include "admin_select_delete.hpp"
 
 // 채팅 관리자 기능 함수
@@ -18,20 +16,21 @@ int main() {
     
     httplib::Server svr;    // httplib::Server 객체 생성
     
-    SetConsoleOutputCP(CP_UTF8);
-    MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
-    Select_delete select_delete(db.getConnection());  // getConnection()에서 반환된 MySQLConnector의 conn을 signin객체에 주입
-    select_delete.All_Select();  // user 테이블 조회
-    string user_id;
-    cout << u8"회원 삭제할 user_id: ";
-    cin >> user_id;
-    select_delete.Update_Status(user_id); //  user_id의 user_status를 2로 변경
-    //select_delete.Update_Status2(user_id); //  2초후 자동으로 원복 실험 -> 유저가 회원탈퇴시 복귀가능기간 제공 위해
+    Select_delete select(db.getConnection());
+    svr.Put("/chat/admin/user_select", [&](const httplib::Request& req, httplib::Response& res) {
+        select.handle_admin_select(req, res);
+        });
 
-    string user_id2;
-    cout << u8"메세지 삭제할 user_id: ";
-    cin >> user_id2;
-    select_delete.Delete_Message(user_id2);    // 메세지 삭제
+    Select_delete user_delete(db.getConnection());
+    svr.Put("/chat/admin/user_delete", [&](const httplib::Request& req, httplib::Response& res) {
+        user_delete.handle_admin_select(req, res);
+        });
+
+    Select_delete message_delete(db.getConnection());
+    svr.Put("/chat/admin/user_delete", [&](const httplib::Request& req, httplib::Response& res) {
+        message_delete.handle_amdim_message_delete(req, res);
+        });
+
 
     User_ban user_ban(db.getConnection());
     // 밴 처리
