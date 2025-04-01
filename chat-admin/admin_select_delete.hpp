@@ -193,13 +193,16 @@ public:
 
         try {
             unique_ptr<PreparedStatement> stmt(conn->prepareStatement(
-                "SELECT login_id, login_pw, user_name, user_addr, user_phone, user_email, user_birthdate FROM User WHERE login_id = ?"
+                "SELECT user_id, login_id, login_pw, user_name, user_addr, user_phone, user_email, user_birthdate FROM User WHERE login_id = ?"
             ));
             stmt->setString(1, login_id);
             unique_ptr<ResultSet> res(stmt->executeQuery());
-
+ 
             while (res->next()) {
                 json user;
+                int user_id = res->getInt("user_id");  
+                cout << "Fetched user_id: " << user_id << endl; // 콘솔 출력 되는지 확인
+                user["user_id"] = res->getInt("user_id");
                 user["login_id"] = res->getString("login_id");
                 user["login_pw"] = res->getString("login_pw");
                 user["user_name"] = res->getString("user_name");
@@ -207,7 +210,6 @@ public:
                 user["user_phone"] = res->getString("user_phone");
                 user["user_email"] = res->getString("user_email");
                 user["user_birthdate"] = res->getString("user_birthdate");
-
                 result_json.push_back(user);
             }
         }
