@@ -1,12 +1,13 @@
+#include "DB.hpp"
+#include <mysql/jdbc.h>
 #include <iostream>
 #include "httplib.h"
 #include "chat_send.hpp"
-#include "DB.hpp"
 #include "test.hpp"
 
 using namespace sql;
 using json = nlohmann::json;
-// 채팅 관련 함수
+// 채팅 관련 함수 
 void handleChat(const httplib::Request& req, httplib::Response& res) {
 
     // 내부 로직 기능
@@ -16,12 +17,12 @@ void handleChat(const httplib::Request& req, httplib::Response& res) {
 
 int main() {
     SetConsoleOutputCP(CP_UTF8);
-    MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
+    MySQLConnector db(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
 
     httplib::Server svr;    // httplib::Server 객체 생성
 
     // 메인함수에서 임시로 돌려본 코드
-    Connection* conn = mysql_db_conn();
+    sql::Connection* conn = mysql_db_conn();
 
     //Chat_send test(1, "", "", conn);
 

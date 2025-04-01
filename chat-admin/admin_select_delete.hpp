@@ -202,6 +202,8 @@ public:
                 json user;
                 int user_id = res->getInt("user_id");  
                 cout << "Fetched user_id: " << user_id << endl; // 콘솔 출력 되는지 확인
+			//cout << "시발ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ" << res->getInt("user_id") << endl;
+
                 user["user_id"] = res->getInt("user_id");
                 user["login_id"] = res->getString("login_id");
                 user["login_pw"] = res->getString("login_pw");
@@ -212,6 +214,7 @@ public:
                 user["user_birthdate"] = res->getString("user_birthdate");
                 result_json.push_back(user);
             }
+            //cout << "User ID: " << res->getInt("user_id") << endl;
         }
         catch (const SQLException& e) {
             cout << "Query failed: " << e.what() << endl;
