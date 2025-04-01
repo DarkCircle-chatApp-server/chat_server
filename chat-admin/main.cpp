@@ -20,6 +20,7 @@ int main() {
     
     Select_delete select(db.getConnection());                                               // 회원 조회 GET 요청 처리
     svr.Get("/chat/admin/user_select", [&](const httplib::Request& req, httplib::Response& res) {
+        cout << "test call+++++++++++++++++++" << endl;
         select.handle_admin_select(req, res);
         });
 
