@@ -18,6 +18,7 @@ int main() {
     httplib::Server svr;                                                                    // httplib::Server 객체 생성
 
     
+
     Select_delete admin_select(db.getConnection());                                               // 회원 조회 GET 요청 처리
     svr.Get("/chat/admin/admin_select", [&](const httplib::Request& req, httplib::Response& res) {
         admin_select.handle_admin_select(req, res);

@@ -39,9 +39,9 @@ public:
     SignIn(Connection* dbconn) : conn(dbconn) {      // 의존성 주입. MySQLConnector 객체로부터 주입받음
 
     }
-    ~SignIn() {
-        //delete conn;
-    }
+    //~SignIn() {
+    //    //delete conn;
+    //}
     // user_id 조회
     int get_key(const string& login_id) {
         try {
@@ -103,10 +103,6 @@ public:
         }
         catch (const SQLException& e) {
             cerr << "SQL Error: " << e.what() << endl;
-            return "Unknown";
-        }
-        catch (const std::exception& e) {
-            cerr << "Exception: " << e.what() << std::endl;
             return "Unknown";
         }
     }

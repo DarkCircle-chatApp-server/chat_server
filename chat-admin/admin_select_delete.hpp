@@ -24,13 +24,15 @@ public:
 
         try {
             unique_ptr<Statement> stmt(conn->createStatement());
-            unique_ptr<ResultSet> res(stmt->executeQuery("SELECT login_id, user_name, user_status FROM User"));
+            unique_ptr<ResultSet> res(stmt->executeQuery("SELECT user_id, login_id, user_name, user_status FROM User"));
 
             while (res->next()) {
+
                 json user;
+                user["user_id"] = res->getInt("user_id");
                 user["login_id"] = res->getString("login_id");
                 user["user_name"] = res->getString("user_name");
-                user["user_status"] = res->getString("user_status");
+                user["user_status"] = res->getInt("user_status");
                 
                 result_json.push_back(user);
             }
