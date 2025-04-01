@@ -44,6 +44,10 @@ public:
     }
     // user_id 조회
     int get_key(const string& login_id) {
+        if (!conn) {
+            cerr << "Database connection is not initialized!" << endl;
+            return -1;
+        }
         try {
             unique_ptr<PreparedStatement> stmt{ conn->prepareStatement("SELECT user_id FROM User WHERE login_id = ?") };
             stmt->setString(1, login_id);
@@ -86,6 +90,10 @@ public:
     }
 
     string get_name(const string& login_id) {
+        if (!conn) {
+            cerr << "Database connection is not initialized!" << endl;
+            return "";
+        }
         try {
             unique_ptr<PreparedStatement> stmt{ conn->prepareStatement("SELECT user_name FROM User WHERE login_id = ?") };
             stmt->setString(1, login_id);
@@ -133,6 +141,10 @@ public:
 
     // user_status값 조회
     int get_user_status(const string& login_id) {
+        if (!conn) {
+            cerr << "Database connection is not initialized!" << endl;
+            return -1;
+        }
         try {
             unique_ptr<PreparedStatement> stmt{ conn->prepareStatement("SELECT user_status FROM User WHERE login_id = ?") };
             stmt->setString(1, login_id);
@@ -177,6 +189,10 @@ public:
     
     // 아이디 중복 체크
     bool is_id_exist(const string& login_id) {
+        if (!conn) {
+            cerr << "Database connection is not initialized!" << endl;
+            return -1;
+        }
         try {
             unique_ptr<PreparedStatement> stmt{ conn->prepareStatement("SELECT COUNT(*) FROM User WHERE login_id = ?") };
             stmt->setString(1, login_id);
@@ -214,6 +230,9 @@ public:
 
     // 회원테이블에 회원가입 데이터 삽입
     void insert_user(const string& login_id, const string& login_pw, const string& user_name, const string& user_addr, const string& user_phone, const string& user_email, const Birthdate user_birthdate) {
+        if (!conn) {
+            cerr << "Database connection is not initialized!" << endl;
+        }
         try {
             unique_ptr<Statement> stmt{ conn->createStatement() };
             stmt->execute("SET NAMES utf8mb4");
@@ -319,6 +338,10 @@ public:
 
     // 입력데이터와 회원테이블 데이터 비교
     bool check_data(const string& login_id, const string& login_pw) {
+        if (!conn) {
+            cerr << "Database connection is not initialized!" << endl;
+            return -1;
+        }
         try {
             unique_ptr<Statement> stmt{ conn->createStatement() };
             stmt->execute("SET NAMES utf8mb4");
@@ -355,7 +378,7 @@ public:
                 string token = create_jwt(login_id);
 
                 // 로그인 성공하면 클라이언트에 jwt 토큰 반환
-                json response = { {"message", "login success"}, {"token", token} };
+                json response = { {"message", "login success"}, {"token", token}, {"login_id", login_id} };
                 // 응답 반환
                 res.set_content(response.dump(), "application/json");
             }
@@ -370,6 +393,9 @@ public:
 
     // user_status 2로 변경 -> 관리자 승인 후 최종 탈퇴 처리
     void delete_user(const int& user_id) {
+        if (!conn) {
+            cerr << "Database connection is not initialized!" << endl;
+        }
         try {
             unique_ptr<Statement> stmt{ conn->createStatement() };
             stmt->execute("SET NAMES utf8mb4");
