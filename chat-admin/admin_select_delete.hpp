@@ -121,7 +121,7 @@ public:
             res.set_content("user delete sucess", "text/plain");
         }
         catch (const SQLException& e) {
-            cout << "login failed" << e.what() << endl;
+            cout << "user_delete failed" << e.what() << endl;
         }
     }
 
@@ -135,7 +135,7 @@ public:
             res.set_content("message delete sucess", "text/plain");
         }
         catch (const SQLException& e) {
-            cout << "login failed" << e.what() << endl;
+            cout << "message_delete failed" << e.what() << endl;
         }
     }
 
@@ -188,54 +188,7 @@ public:
         }
     }
 
-
-    //// 개인 정보 조회 후 JSON 반환 (특정 login_id 검색)
-    //json User_Select(const string& login_id) {
-    //    json result_json;
-
-    //    try {
-    //        unique_ptr<PreparedStatement> stmt(conn->prepareStatement(
-    //            "SELECT login_id, login_pw, user_name, user_addr, user_phone, user_email, user_birthdate FROM User WHERE login_id = ?"));
-    //        stmt->setString(1, login_id);
-
-    //        unique_ptr<ResultSet> res(stmt->executeQuery());
-
-    //        if (res->next()) {
-    //            json user;
-    //            user["login_id"] = res->getString("login_id");
-    //            user["login_pw"] = res->getString("login_pw");
-    //            user["user_name"] = res->getString("user_name");
-    //            user["user_addr"] = res->getString("user_addr");
-    //            user["user_phone"] = res->getString("user_phone");
-    //            user["user_email"] = res->getString("user_email");
-    //            user["user_birthdate"] = res->getString("user_birthdate");
-
-    //            result_json = user;
-    //        }
-    //    }
-    //    catch (const SQLException& e) {
-    //        cout << "Query failed: " << e.what() << endl;
-    //    }
-
-    //    return result_json;
-    //}
-
-    //// POST 요청을 처리하여 JSON 응답 반환
-    //void handle_user_select(const httplib::Request& req, httplib::Response& res) {
-    //    try {
-    //        json request_json = json::parse(req.body);
-    //        string login_id = request_json["login_id"].get<string>();
-
-    //        json user = User_Select(login_id);
-
-    //        res.set_content(user.dump(), "application/json");
-    //    }
-    //    catch (const exception& e) {
-    //        cout << "Request handling failed: " << e.what() << endl;
-    //    }
-    //}
-
-    json User_Select(const string& login_id) {
+    json User_Select(const string& login_id) {                                                                      // 마이페이지(본인 회원정보 조회)
         json result_json = json::array();
 
         try {
@@ -265,8 +218,8 @@ public:
         return result_json;
     }
 
-    // POST 요청을 처리하여 JSON 응답 반환
-    void handle_user_select(const httplib::Request& req, httplib::Response& res) {
+    
+    void handle_user_select(const httplib::Request& req, httplib::Response& res) {                                    // user select api 연동
         try {
             // 요청 본문이 비어있는지 확인
             if (req.body.empty()) {
@@ -285,25 +238,19 @@ public:
             }
 
             string login_id = body_json["login_id"];
-            json users = User_Select(login_id); // 특정 login_id의 사용자 조회
+            json users = User_Select(login_id);                             // 특정 login_id의 사용자 조회
 
             // 조회된 결과가 없는 경우 처리
             if (users.empty()) {
                 res.status = 404;
-                res.set_content(R"({"error": "User not found"})", "application/json");
+                res.set_content("error: User not found", "application/json");
                 return;
             }
 
             res.set_content(users.dump(), "application/json");
         }
-        catch (const json::parse_error& e) {
-            res.status = 400;
-            res.set_content(R"({"error": "Invalid JSON format"})", "application/json");
-        }
         catch (const SQLException& e) {
-            cout << "Query failed: " << e.what() << endl;
-            res.status = 500;
-            res.set_content(R"({"error": "Database query failed"})", "application/json");
+            cout << "user_select failed" << e.what() << endl;
         }
     }
 };
