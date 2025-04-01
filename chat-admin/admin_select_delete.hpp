@@ -1,7 +1,7 @@
 #pragma once
 
 #include<iostream>
-#include<mysql/jdbc.h>
+#include <mysql/jdbc.h>
 #include<windows.h>
 #include "DB_admin.hpp"
 
