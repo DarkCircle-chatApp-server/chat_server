@@ -138,6 +138,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="chat_room.hpp" />
     <ClInclude Include="chat_send.hpp" />
     <ClInclude Include="test.hpp" />
   </ItemGroup>

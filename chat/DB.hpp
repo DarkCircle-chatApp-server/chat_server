@@ -12,7 +12,9 @@ using namespace sw::redis;
 #define MYSQL_USERNAME		"root"
 #define MYSQL_PASSWORD		"12345"
 #define MYSQL_DATABASE		"chat"
-#define REDIS_SERVER_IP		"tcp://127.0.0.1:6379"
+#define REDIS_SERVER_IP		"127.0.0.1"
+
+#define REDIS_PORT			6379
 #define REDIS_PASSWORD		"admin1234"
 
 class MySQLConnector {				// MYSQL 연결 클래스
@@ -53,8 +55,8 @@ struct R_Conn {					// Redis 연결 구조체
 	sw::redis::ConnectionOptions opts;
 
 	R_Conn() {
-		opts.host = "127.0.0.1";
-		opts.port = 6379;
-		opts.password = "admin1234";
+		opts.host = REDIS_SERVER_IP;
+		opts.port = REDIS_PORT;
+		opts.password = REDIS_PASSWORD;
 	}
 };
