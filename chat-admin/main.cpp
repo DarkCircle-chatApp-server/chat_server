@@ -32,7 +32,10 @@ int main() {
         message_delete.handle_amdim_message_delete(req, res);
         });
 
-
+    Select_delete admin_status(db.getConnection());                                                // 관리자 권한 부여
+    svr.Put("/chat/admin/status_update", [&](const httplib::Request& req, httplib::Response& res) {
+        admin_status.handle_admin_status(req, res);
+        });
 
     User_ban user_ban(db.getConnection());                                                  // 밴 처리
     svr.Put("/chat/admin/ban", [&](const httplib::Request& req, httplib::Response& res) {
@@ -44,6 +47,8 @@ int main() {
     svr.Put("/chat/admin/unban", [&](const httplib::Request& req, httplib::Response& res) {
         user_unban.handle_user_unban(req, res);
         });
+
+    
 
     // CORS 설정
     svr.set_default_headers({
