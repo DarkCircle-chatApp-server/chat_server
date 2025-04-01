@@ -137,5 +137,55 @@ public:
         }
     }
 
+    void Update_Admin_status(const int& user_id) {                                        // 관리자 권한 부여 
+        try {
+            // 현재 user_status 확인
+            unique_ptr<PreparedStatement> checkStmt(conn->prepareStatement("SELECT user_status FROM User WHERE user_id = ?"));
+            checkStmt->setInt(1, user_id);
+            unique_ptr<ResultSet> res(checkStmt->executeQuery());
+
+            if (res->next()) {
+                int current_status = res->getInt("user_status");
+                if (current_status == 0) {
+                    cout << u8"이미 관리자 권한입니다. " << endl;
+                    return;
+                }
+
+                else {
+                    // user_status 변경 (관리자 권한 처리)
+                    unique_ptr<PreparedStatement> pstmt(conn->prepareStatement("UPDATE User SET user_status = 0 WHERE user_id = ?"));
+                    pstmt->setInt(1, user_id);                                      // 첫번째 물음표 지정
+                    int Status_Change = pstmt->executeUpdate();                     // executeUpdate()는 행의 개수를 반환
+
+                    if (Status_Change > 0) {                                        // 삭제할 행이 있으면 실행
+                        cout << u8"User ID " << user_id << u8" 상태가 0으로 변경되었습니다." << endl;
+                    }
+                    else {
+                        cout << u8"업데이트 실패: user_id " << user_id << u8"을(를) 찾을 수 없음" << endl;
+                    }
+                    return;
+                }
+            }
+        }
+        catch (SQLException& e) {
+            cout << u8"실패: " << e.what() << endl;
+        }
+    }
+
+    void handle_admin_status(const httplib::Request& req, httplib::Response& res) {                // 관리자 권한 부여 api 연동 
+        try {
+            json req_json = json::parse(req.body);
+
+            int user_id = req_json["user_id"];
+
+            Update_Admin_status(user_id);
+            res.set_content("update admin sucess", "text/plain");
+        }
+        catch (const SQLException& e) {
+            cout << "login failed" << e.what() << endl;
+        }
+    }
+
+
 
 };
