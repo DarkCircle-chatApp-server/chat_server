@@ -41,9 +41,3 @@ public:
 		cout << "MySQL DisConnect!!" << endl;
 	}
 };
-//int main()
-//{
-//	MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
-//
-//	return 0;
-//}
