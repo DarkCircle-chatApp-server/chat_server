@@ -115,7 +115,7 @@ public:
 		stat_check();		// 객체 생성 시 유저 상태 확인
 	}
 
-	void insert_chat() {		// 채팅 저장 함수
+	void insert_chat(string _msg_text) {		// 채팅 저장 함수
 		stat_check();		// 차단 됐는지 확인 후 값이 변경 됐으면 변경
 		if (user_status != 3) {			// 임시 차단이 아니면 아래 코드 실행
 			cout << "채팅 입력 ";
@@ -150,14 +150,11 @@ public:
 		while (true) {
 			out_chat_data_redis();				// redis 데이터 담기
 
-			cout << redis_to_mysql[0] << endl;
-
 			if (!redis_to_mysql[0].empty()) {		// redis 에서 데이터를 성공적으로 담은지 확인
 
 				del_chat_redis();					// 성공적으로 redis에서 클라이언트로 데이터를 담으면 Redis 데이터 삭제
 
 				int _user_id = stoi(redis_to_mysql[0]);
-				cout << redis_to_mysql[1] << endl;
 
 				try {
 					unique_ptr<PreparedStatement> pstmt(m_conn->prepareStatement("INSERT INTO Message (user_id, msg_text, msg_time) VALUES(?, ?, ?)"));
