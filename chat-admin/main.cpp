@@ -14,46 +14,40 @@ int main() {
     SetConsoleOutputCP(CP_UTF8);
     MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
     
-    httplib::Server svr;    // httplib::Server 객체 생성
+    httplib::Server svr;                                                                    // httplib::Server 객체 생성
 
     
-    //Select_delete select(db.getConnection());   // 조회
-    //svr.Get("/chat/admin/user_select", [&](const httplib::Request& req, httplib::Response& res) {
-    //    select.handle_admin_select(req, res);
-    //    });
-    Select_delete select(db.getConnection());  // GET 요청 처리
+    Select_delete select(db.getConnection());                                               // 회원 조회 GET 요청 처리
     svr.Get("/chat/admin/user_select", [&](const httplib::Request& req, httplib::Response& res) {
         select.handle_admin_select(req, res);
         });
 
-    Select_delete user_delete(db.getConnection());  // 유저 삭제
+    Select_delete user_delete(db.getConnection());                                          // 유저 삭제
     svr.Put("/chat/admin/user_delete", [&](const httplib::Request& req, httplib::Response& res) {
         user_delete.handle_admin_user_delete(req, res);
         });
 
-    Select_delete message_delete(db.getConnection());   // 메세지 삭제
+    Select_delete message_delete(db.getConnection());                                       // 메세지 삭제
     svr.Put("/chat/admin/message_delete", [&](const httplib::Request& req, httplib::Response& res) {
         message_delete.handle_amdim_message_delete(req, res);
         });
 
 
 
-    User_ban user_ban(db.getConnection());
-    // 밴 처리
+    User_ban user_ban(db.getConnection());                                                  // 밴 처리
     svr.Put("/chat/admin/ban", [&](const httplib::Request& req, httplib::Response& res) {
         user_ban.handle_user_ban(req, res);
         });
 
-    // 밴해제 처리
-    User_ban user_unban(db.getConnection());
-
+    
+    User_ban user_unban(db.getConnection());                                                // 밴해제 처리
     svr.Put("/chat/admin/unban", [&](const httplib::Request& req, httplib::Response& res) {
         user_unban.handle_user_unban(req, res);
         });
 
     // CORS 설정
     svr.set_default_headers({
-        { "Access-Control-Allow-Origin", "*" },     // 모든 도메인에서 접근 허용
+        { "Access-Control-Allow-Origin", "*" },                                             // 모든 도메인에서 접근 허용
         { "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE" },
         { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
         });
