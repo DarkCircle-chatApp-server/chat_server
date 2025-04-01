@@ -139,6 +139,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="admin_select_delete.hpp" />
+    <ClInclude Include="change_pw.hpp" />
     <ClInclude Include="chat_ban.hpp" />
     <ClInclude Include="httplib.h" />
     <ClInclude Include="user_check.hpp" />

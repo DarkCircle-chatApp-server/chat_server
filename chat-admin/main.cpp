@@ -3,6 +3,7 @@
 #include"DB_admin.hpp"
 #include "chat_ban.hpp"
 #include "admin_select_delete.hpp"
+#include "change_pw.hpp"
 
 // 채팅 관리자 기능 함수
 //void handle_chat_admin(const httplib::Request& req, httplib::Response& res) {
@@ -48,7 +49,12 @@ int main() {
         user_unban.handle_user_unban(req, res);
         });
 
-    
+
+    Change_PW change_pw(db.getConnection());
+    svr.Put("/chat/admin/change_pw", [&](const httplib::Request& req, httplib::Response& res) {
+        change_pw.handle_Change_PW(req, res);
+        });
+
 
     // CORS 설정
     svr.set_default_headers({
