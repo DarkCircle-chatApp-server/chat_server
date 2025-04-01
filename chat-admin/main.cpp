@@ -18,10 +18,17 @@ int main() {
     httplib::Server svr;                                                                    // httplib::Server 객체 생성
 
     
-    Select_delete select(db.getConnection());                                               // 회원 조회 GET 요청 처리
-    svr.Get("/chat/admin/user_select", [&](const httplib::Request& req, httplib::Response& res) {
-        select.handle_admin_select(req, res);
+    Select_delete admin_select(db.getConnection());                                               // 회원 조회 GET 요청 처리
+    svr.Get("/chat/admin/admin_select", [&](const httplib::Request& req, httplib::Response& res) {
+        admin_select.handle_admin_select(req, res);
         });
+
+    Select_delete user_select(db.getConnection());                                               // 개인 조회 GET 요청 처리
+    // POST 요청을 위한 엔드포인트 설정
+    svr.Post("/chat/admin/user_select", [&](const httplib::Request& req, httplib::Response& res) {
+        user_select.handle_user_select(req, res);
+        });
+
 
     Select_delete user_delete(db.getConnection());                                          // 유저 삭제
     svr.Put("/chat/admin/user_delete", [&](const httplib::Request& req, httplib::Response& res) {
