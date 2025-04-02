@@ -6,6 +6,7 @@
 #include "DB.hpp"  // MySQLConnector 클래스를 포함하는 헤더
 #include "httplib.h"
 #include "json.hpp"
+#include <sstream>
  
 using namespace std;
 using json = nlohmann::json;
@@ -60,9 +61,9 @@ public:
             cout << "No messages found in the database." << endl;
             return result_json;
         }
-
-        try {
-            string query = R"(
+        // SQL과 R을 연계하여 데이터를 처리하면 텍스트.날짜/시간, 숫자 값이 포함된 일부 데이터 처리가 가능해서 넣음 빼고 해도 문제는 없음
+        try {                   
+            string query = R"(                                                      
             SELECT m.msg_id, m.user_id, u.user_name, m.msg_text, m.msg_time 
             FROM Message m 
             JOIN User u ON m.user_id = u.user_id 
