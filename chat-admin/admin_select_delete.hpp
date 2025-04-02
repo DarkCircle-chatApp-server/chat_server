@@ -157,7 +157,7 @@ public:
                 else {
                     // user_status 변경 (관리자 권한 처리)
                     unique_ptr<PreparedStatement> pstmt(conn->prepareStatement("UPDATE User SET user_status = 0 WHERE user_id = ?"));
-                    pstmt->setInt(1, user_id);                                       // 첫번째 물음표 지정
+                    pstmt->setInt(1, user_id);                                      // 첫번째 물음표 지정
                     int Status_Change = pstmt->executeUpdate();                     // executeUpdate()는 행의 개수를 반환
 
                     if (Status_Change > 0) {                                        // 삭제할 행이 있으면 실행
@@ -204,17 +204,9 @@ public:
             stmt->setString(1, login_id);
             unique_ptr<ResultSet> res(stmt->executeQuery());
 
- 
-            while (res->next()) {
-                json user;
-                int user_id = res->getInt("user_id");  
-                cout << "Fetched user_id: " << user_id << endl; // �ܼ� ��� �Ǵ��� Ȯ��
-			//cout << "���Ȯ��" << res->getInt("user_id") << endl;
-
-
             bool first = true;
             while (res->next()) {
-                if (!first) oss << ",";                                                         // 여러 개의 JSON 객체 구분 /
+                if (!first) oss << ",";                                                         // 여러 개의 JSON 객체 구분
                 first = false;
 
                 // JSON 객체를 문자열로 직접 구성 (순서 고정)
