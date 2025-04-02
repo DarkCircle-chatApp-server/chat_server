@@ -26,8 +26,11 @@ private:
 
 	string redis_to_mysql[3] = {};			// redis에 저장된 데이터 sql로 옮기는 배열
 
-	sql::Connection* m_conn;			// SQL 의존성 주입 객체
+	shared_ptr<sql::Connection> m_conn;			// SQL 의존성 주입 객체
 	shared_ptr<Redis> redis;			// Redis 의존성 주입 객체
+
+
+	mutex ex_;
 
 	void current_date() {			// C++에서 현재 시간 생성을 MySQL TIMEDATE형에 변환한 함수(클래스 내 호출)
 		time_t now = time(0);
@@ -119,9 +122,12 @@ private:
 	}
 
 public:
-	Chat_send(int _user_id, const char* _msg_text, const char* _msg_time, sql::Connection* _m_conn, shared_ptr<Redis> _redis)
-		: user_id(_user_id), msg_text(_msg_text), msg_time(_msg_time), m_conn(_m_conn), redis(_redis) {
+	Chat_send(int _user_id, const char* _msg_text, const char* _msg_time, shared_ptr<sql::Connection> _m_conn, shared_ptr<Redis> _redis)
+		: user_id(_user_id), msg_text(_msg_text), msg_time(_msg_time), m_conn(move(_m_conn)), redis(_redis) {
 		stat_check();		// 객체 생성 시 유저 상태 확인
+	}
+	~Chat_send() {
+		if (user_id == 1) insert_chat_mysql();			// 관리자가 프로그램을 정상 종료해야 저장됨 (관리자 id db에 저장안되있어서 일부러 1로함)
 	}
 
 	void insert_chat(const httplib::Request& req, httplib::Response& res) {		// 채팅 저장 함수
@@ -156,8 +162,8 @@ public:
 		}
 	}
 
-	void insert_chat_mysql(const httplib::Request& req, httplib::Response& res) {			// Redis에 담은 채팅 데이터 MySQL로 이동
-		json req_json = json::parse(req.body);
+	void insert_chat_mysql() {			// Redis에 담은 채팅 데이터 MySQL로 이동
+		//json req_json = json::parse(req.body);
 		m_conn->setAutoCommit(false);
 
 		if (r_data_num < s_data_num) {		// redis 데이터 삭제 실패 했을 경우 redis 데이터 먼저 삭제
@@ -199,7 +205,7 @@ public:
 					return;				// 쿼리 실패 = 함수 탈출
 				}
 
-				res.set_content("user_id: " + redis_to_mysql[0] + " 추출 중..", "text/plain");			// json 데이터로 웹에 실행 완료 메시지 보냄
+				//res.set_content("user_id: " + redis_to_mysql[0] + " 추출 중..", "text/plain");			// json 데이터로 웹에 실행 완료 메시지 보냄
 				redis_to_mysql[0] = "";				// 다시 redis에서 꺼낸 값 초기화
 			}
 			else {				// Redis에서 MySQL로 성공적으로 데이터 다 담으면 탈출
@@ -208,7 +214,7 @@ public:
 			}
 		}
 		m_conn->commit();				// 트랜잭션 완료
-		res.set_content("Success Redis into MySQL", "text/plain");			// json 데이터로 웹에 실행 완료 메시지 보냄
+		//res.set_content("Success Redis into MySQL", "text/plain");			// json 데이터로 웹에 실행 완료 메시지 보냄
 
 		while (true) {
 			bool del_check = del_chat_redis();					// 데이터 이전 이후 남은 Redis 데이터 삭제

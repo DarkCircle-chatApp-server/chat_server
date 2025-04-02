@@ -44,9 +44,9 @@ public:
 };
 
 // mysql 연결함수
-inline sql::Connection* mysql_db_conn() {
+inline shared_ptr<sql::Connection> mysql_db_conn() {
 	sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
-	sql::Connection* conn = driver->connect(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD);
+	shared_ptr<sql::Connection> conn(driver->connect(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD));
 	conn->setSchema(MYSQL_DATABASE);
 	return conn;
 }
