@@ -1,10 +1,10 @@
 #include "DB.hpp"
-
 #include <iostream>
 #include "httplib.h"
 #include "chat_send.hpp"
 #include "chat_room.hpp"
 #include "chat_print.hpp"
+#include <windows.h>
 
 using namespace sql;
 using json = nlohmann::json;
@@ -17,7 +17,7 @@ void handleChat(const httplib::Request& req, httplib::Response& res) {
 }
 
 int main() {
-    SetConsoleOutputCP(CP_UTF8);
+    //SetConsoleOutputCP(CP_UTF8);
     httplib::Server svr;    // httplib::Server 객체 생성
 
     MySQLConnector db(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
@@ -63,7 +63,7 @@ int main() {
         { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
         });
 
-    std::cout << u8"Chat Service 실행 중: http://localhost:5003" << std::endl;
+    std::cout << u8"Chat Service running: http://localhost:5003" << std::endl;
     svr.listen("0.0.0.0", 5003); // 서버 실행
 
     // return 0; 하면 안 됨, 서버는 종료될 때까지 계속 실행되어야 함
