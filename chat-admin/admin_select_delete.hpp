@@ -204,6 +204,14 @@ public:
             stmt->setString(1, login_id);
             unique_ptr<ResultSet> res(stmt->executeQuery());
 
+ 
+            while (res->next()) {
+                json user;
+                int user_id = res->getInt("user_id");  
+                cout << "Fetched user_id: " << user_id << endl; // �ܼ� ��� �Ǵ��� Ȯ��
+			//cout << "���Ȯ��" << res->getInt("user_id") << endl;
+
+
             bool first = true;
             while (res->next()) {
                 if (!first) oss << ",";                                                         // 여러 개의 JSON 객체 구분

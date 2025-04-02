@@ -59,7 +59,7 @@ int main() {
         });
 
 
-    Change_PW change_pw(db.getConnection());
+    Change_PW change_pw(db.getConnection());                                                // 비밀번호 변경
     svr.Put("/chat/admin/change_pw", [&](const httplib::Request& req, httplib::Response& res) {
         change_pw.handle_Change_PW(req, res);
         });
