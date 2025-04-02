@@ -42,7 +42,6 @@ int main() {
 
     // redis에 저장된 데이터 mysql에 저장
     svr.Post("/chat/room/mysql", [&](const httplib::Request& req, httplib::Response& res) {
-        cout << "insert_chat_mysql" << endl;
         client.insert_chat_mysql(req, res);
         });
 
