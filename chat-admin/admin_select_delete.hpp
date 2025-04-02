@@ -1,7 +1,7 @@
 #pragma once
 
 #include<iostream>
-#include <mysql/jdbc.h>
+#include<mysql/jdbc.h>
 #include<windows.h>
 #include "DB_admin.hpp"
 #include <sstream>
@@ -15,7 +15,7 @@ class Select_delete {
 private:
     Connection* conn;                                                                       // Connection 타입의 포인터 conn
 public:
-    Select_delete (Connection* dbconn) : conn(dbconn) {                                     // 의존성 주입. MySQLConnector 객체로부터 주입받음
+    Select_delete(Connection* dbconn) : conn(dbconn) {                                     // 의존성 주입. MySQLConnector 객체로부터 주입받음
 
     }
 
@@ -34,7 +34,7 @@ public:
                 user["login_id"] = res->getString("login_id");
                 user["user_name"] = res->getString("user_name");
                 user["user_status"] = res->getInt("user_status");
-                
+
                 result_json.push_back(user);
             }
         }
@@ -45,8 +45,8 @@ public:
         return result_json;
     }
 
-     // GET 요청을 처리하여 JSON 응답 반환
-    // GET 요청에서는 req.body를 사용할 수 없다고 함, GET 요청에서는 URL 쿼리 매개변수를 활용해야 함.
+    // GET 요청을 처리하여 JSON 응답 반환
+   // GET 요청에서는 req.body를 사용할 수 없다고 함, GET 요청에서는 URL 쿼리 매개변수를 활용해야 함.
     void handle_admin_select(const httplib::Request& req, httplib::Response& res) {
         try {
             json users = All_Select();                                                 // MySQL 데이터 조회
@@ -54,14 +54,14 @@ public:
         }
         catch (const SQLException& e) {
             cout << "Query failed: " << e.what() << endl;
-          
+
         }
     }
 
 
     void Update_Status(const int& user_id) {                                        // 회원 삭제
         try {
-                                                                                    // 현재 user_status 확인
+            // 현재 user_status 확인
             unique_ptr<PreparedStatement> checkStmt(conn->prepareStatement("SELECT user_status FROM User WHERE user_id = ?"));
             checkStmt->setInt(1, user_id);
             unique_ptr<ResultSet> res(checkStmt->executeQuery());
@@ -74,7 +74,7 @@ public:
                 }
 
                 else {
-                                                                                    // user_status 변경 (회원 삭제 처리)
+                    // user_status 변경 (회원 삭제 처리)
                     unique_ptr<PreparedStatement> pstmt(conn->prepareStatement("UPDATE User SET user_status = 2 WHERE user_id = ?"));
                     pstmt->setInt(1, user_id);                                      // 첫번째 물음표 지정
                     int Status_Change = pstmt->executeUpdate();                     // executeUpdate()는 행의 개수를 반환
@@ -110,7 +110,7 @@ public:
         catch (SQLException& e) {
             cout << u8"실패: " << e.what() << endl;
         }
-    }       
+    }
 
     void handle_admin_user_delete(const httplib::Request& req, httplib::Response& res) {                // 회원 삭제 api 연동 
         try {
@@ -198,7 +198,7 @@ public:
     //        ));
     //        stmt->setString(1, login_id);
     //        unique_ptr<ResultSet> res(stmt->executeQuery());
- 
+
     //        while (res->next()) {
     //            json user;
     //            int user_id = res->getInt("user_id");  
@@ -221,7 +221,7 @@ public:
     //    return result_json;
     //}
 
-    
+
     //void handle_user_select(const httplib::Request& req, httplib::Response& res) {                                    // user select api 연동 - 순서 x
     //    try {
     //        // 요청 본문이 비어있는지 확인
@@ -272,9 +272,7 @@ public:
             unique_ptr<ResultSet> res(stmt->executeQuery());
 
             bool first = true;
-          
             while (res->next()) {
-              
                 if (!first) oss << ","; // 여러 개의 JSON 객체 구분
                 first = false;
 
@@ -289,24 +287,7 @@ public:
                     << "\"user_email\":\"" << res->getString("user_email") << "\","
                     << "\"user_birthdate\":\"" << res->getString("user_birthdate") << "\""
                     << "}";
-
-                json user;
-                int user_id = res->getInt("user_id");  
-                cout << "Fetched user_id: " << user_id << endl; // 콘솔 출력 되는지 확인
-			//cout << "시발ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ" << res->getInt("user_id") << endl;
-
-                user["user_id"] = res->getInt("user_id");
-                user["login_id"] = res->getString("login_id");
-                user["login_pw"] = res->getString("login_pw");
-                user["user_name"] = res->getString("user_name");
-                user["user_addr"] = res->getString("user_addr");
-                user["user_phone"] = res->getString("user_phone");
-                user["user_email"] = res->getString("user_email");
-                user["user_birthdate"] = res->getString("user_birthdate");
-                result_json.push_back(user);
-
             }
-            //cout << "User ID: " << res->getInt("user_id") << endl;
         }
         catch (const SQLException& e) {
             std::cerr << "Query failed: " << e.what() << std::endl;
