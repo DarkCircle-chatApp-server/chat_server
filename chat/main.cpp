@@ -2,7 +2,7 @@
 #include "httplib.h"
 #include "chat_send.hpp"
 #include "DB.hpp"
-#include "test.hpp"
+#include "chat_print.hpp"
 
 using namespace sql;
 using json = nlohmann::json;
@@ -23,18 +23,18 @@ int main() {
     // 메인함수에서 임시로 돌려본 코드
     Connection* conn = mysql_db_conn();
 
-    //Chat_send test(1, "", "", conn);
+    Chat_send test(1, "", "", conn);
 
     Message select(db.getConnection());  // GET 요청 처리
     svr.Get("/chat/messages", [&](const httplib::Request& req, httplib::Response& res) {
         select.handleMessages(req, res);
         });
 
-    //svr.Get("/chat", handleChat);
+    svr.Get("/chat", handleChat);
 
-    //svr.Post("/chat", [&](const httplib::Request& req, httplib::Response& res) {        // json 요청받기 위해 chat_insert()함수 연동
-    //    test.insert_chat(req, res);
-    //    });
+    svr.Post("/chat", [&](const httplib::Request& req, httplib::Response& res) {        // json 요청받기 위해 chat_insert()함수 연동
+        test.insert_chat(req, res);
+        });
 
     // CORS 설정
     svr.set_default_headers({

@@ -26,7 +26,7 @@
     <ClInclude Include="chat_send.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="test.hpp">
+    <ClInclude Include="chat_print.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
