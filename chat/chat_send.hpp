@@ -1,6 +1,6 @@
 #pragma once
 
-#include <nlohmann/json.hpp>
+#include "json.hpp"
 #include "httplib.h"
 #include "DB.hpp"
 #include <ctime>
@@ -13,9 +13,13 @@ static int outp_msg_id = 1;				// redis에서 빼와야할 채팅 msg_id
 class Chat_send {
 private:
 	const int user_id = 0;				// 유저 id 상수화 선언 (객체 생성시 고정 아이디 값)
-	int local_msg_id;					// 접속한 객체(계정)가 부여받는 msg_id 값
+	int local_msg_id = 1;					// redis에 저장하기 직전 입력받은 채팅의 번호
 
 	int user_status = 0;				// 유저 상태값 상수화 선언 (디버그 모드일때 오류나서 일단 상수X)
+	
+	int r_data_num = 1;					// Redis에서 sql로 데이터를 넣은 후 Redis에 지워야 할 데이터 수
+	int check_s_data = 1;				// 처음 s_data_num 값
+	int s_data_num = 1;					// MySQL로 넘겨줄 데이터 수
 
 	string msg_text;		// 메시지 내용
 	string msg_time;		// 타임 로그
@@ -70,24 +74,27 @@ private:
 		}
 	}
 
-	void del_chat_redis() {				// redis 데이터 삭제 함수
+	bool del_chat_redis() {				// redis 데이터 삭제 함수
 		try {
-			string ins_m_id_redis = "msg_id:" + to_string(outp_msg_id);		// msg_id 동적으로 입력받기
+			string ins_m_id_redis = "msg_id:" + to_string(r_data_num);		// msg_id 동적으로 입력받기
 			redis->del(ins_m_id_redis);
 
-			cout << "삭제 성공" << endl;
-			outp_msg_id += 1;				// redis에서 데이터 빼온 후 데이터 다 지워지면 +1 추가
+			//cout << "삭제 성공" << endl;
+			r_data_num++;				// redis에서 데이터 빼온 후 데이터 다 지워지면 +1 추가
+
+			return true;				// 데이터 1개 삭제 시 true 반환
 		}
 		catch (const Error& e) {
 			cerr << "Rediis 연결 오류: " << e.what() << endl;
+			return false;			// 오류로 실패시 탈출
 		}
 	}
 
-	void out_chat_data_redis() {			// redis 데이터 빼오기
+	void out_chat_data_redis() {			// redis 데이터 불러오기
 		try {
 			int index_f = 0;				// redis_to_mysql 배열에 동적으로 넣기 위한 인덱스
 
-			string ins_m_id_redis = "msg_id:" + to_string(outp_msg_id);		// msg_id 동적으로 입력받기
+			string ins_m_id_redis = "msg_id:" + to_string(s_data_num);		// msg_id 동적으로 입력받기
 
 			std::vector<OptionalString> fields;
 
@@ -136,7 +143,8 @@ public:
 
 	void insert_chat_redis() {		// 입력받은 채팅 redis로 저장하는 함수
 		try {
-			local_msg_id = room_msg_num++;				// 현재 채팅 내역을 local_msg_id에 저장하면서 전역 변수 값 +1 증가
+			local_msg_id = room_msg_num++;				// 현재 채팅 내역을 local_msg_id에 저장하면서 전역 변수 값 +1 
+
 			string ins_m_id_redis = "msg_id:" + to_string(local_msg_id);		// msg_id 동적으로 입력받기
 			string r_msg_id = to_string(user_id);
 
@@ -150,15 +158,25 @@ public:
 
 	void insert_chat_mysql(const httplib::Request& req, httplib::Response& res) {			// Redis에 담은 채팅 데이터 MySQL로 이동
 		json req_json = json::parse(req.body);
+		m_conn->setAutoCommit(false);
+
+		if (r_data_num < s_data_num) {		// redis 데이터 삭제 실패 했을 경우 redis 데이터 먼저 삭제
+			while (true) {
+				bool del_check = del_chat_redis();					// 데이터 이전 이후 남은 Redis 데이터 삭제
+				if (r_data_num >= s_data_num) break;				// 다 지웠을 경우 while문 탈출
+				if (!del_chat_redis()) return;						// Redis 삭제 에러 시 함수 탈출
+			}
+		}
+
+		r_data_num = room_msg_num;				// Redis에서 MySQL로 데이터를 넘겨야 할 갯수
+		check_s_data = s_data_num;				// 쿼리문 돌기 전 sql 초기값
 
 		while (true) {
 			out_chat_data_redis();				// redis 데이터 담기
 
 			if (!redis_to_mysql[0].empty()) {		// redis 에서 데이터를 성공적으로 담은지 확인
 
-				del_chat_redis();					// 성공적으로 redis에서 클라이언트로 데이터를 담으면 Redis 데이터 삭제
-
-				int _user_id = stoi(redis_to_mysql[0]);
+				int _user_id = stoi(redis_to_mysql[0]);			// redis에 저장된 user_id 값 형 변환
 
 				try {
 					unique_ptr<PreparedStatement> pstmt(m_conn->prepareStatement("INSERT INTO Message (user_id, msg_text, msg_time) VALUES(?, ?, ?)"));
@@ -166,22 +184,37 @@ public:
 					pstmt->setString(2, redis_to_mysql[1]);
 					pstmt->setDateTime(3, redis_to_mysql[2]);
 					pstmt->executeUpdate();
+
+					s_data_num++;				// 남은 메시지 1증가
 				}
 				catch (SQLException& e) {		// 쿼리 연결 오류
 					cout << "MySQL Connection Failed: " << e.what() << endl;
 					cout << "SQL Error Code: " << e.getErrorCode() << endl;
 					cout << "SQL State: " << e.getSQLState() << endl;
+
+					s_data_num = check_s_data;	// 데이터 저장 전으로 돌아감
+					redis_to_mysql[0] = "";		// redis에서 꺼낸 값 초기화
+					m_conn->rollback();			// 트랜잭션 롤백
+					
+					return;				// 쿼리 실패 = 함수 탈출
 				}
+
+				res.set_content("user_id: " + redis_to_mysql[0] + " 추출 중..", "text/plain");			// json 데이터로 웹에 실행 완료 메시지 보냄
 				redis_to_mysql[0] = "";				// 다시 redis에서 꺼낸 값 초기화
-
-				res.set_content("Redis data into mysql", "text/plain");			// json 데이터로 웹에 실행 완료 메시지 보냄
 			}
-
-			else {
+			else {				// Redis에서 MySQL로 성공적으로 데이터 다 담으면 탈출
 				cout << "클라이언트에 Redis 데이터 없음!" << endl;
 				break;
 			}
 		}
+		m_conn->commit();				// 트랜잭션 완료
+		res.set_content("Success Redis into MySQL", "text/plain");			// json 데이터로 웹에 실행 완료 메시지 보냄
+
+		while (true) {
+			bool del_check = del_chat_redis();					// 데이터 이전 이후 남은 Redis 데이터 삭제
+			if ((r_data_num >= s_data_num) || (del_check == false)) break;		//		다 지웠거나 오류났을 시 탈출
+		}
+
 
 	}
 };
