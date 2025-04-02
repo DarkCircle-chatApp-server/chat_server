@@ -12,10 +12,10 @@ using json = nlohmann::json;
 
 class Message {
 private:
-    Connection* conn; // MySQL ¿¬°á °´Ã¼
+    sql::Connection* conn; // MySQL ¿¬°á °´Ã¼
 
 public:
-    Message(Connection* _conn) : conn(_conn) {
+    Message(sql::Connection* _conn) : conn(_conn) {
         if (!conn) {
             cerr << "Error: Connection pointer is null!" << endl;
         }
