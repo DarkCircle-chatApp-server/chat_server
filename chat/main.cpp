@@ -4,7 +4,7 @@
 #include "httplib.h"
 #include "chat_send.hpp"
 #include "chat_room.hpp"
-#include "test.hpp"
+#include "chat_print.hpp"
 
 using namespace sql;
 using json = nlohmann::json;
@@ -23,16 +23,16 @@ int main() {
     MySQLConnector db(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
     sql::Connection* s_conn = mysql_db_conn();              // MySQL DB연동
 
-    R_Conn r_conn;
-    auto redis = make_shared<Redis>(r_conn.opts);
+    //R_Conn r_conn;
+    ////auto redis = make_shared<Redis>(r_conn.opts);
 
-    Chat_send ch_send(1, "", "", s_conn, redis);
-    Chat_room ch_room(redis);
+    //Chat_send ch_send(1, "", "", s_conn, redis);
+    //Chat_room ch_room(redis);
 
     //ch_send.insert_chat();                  // 채팅 입력 후 redis로 전송
     //ch_send.insert_chat_mysql();            // redis에 저장된 채팅 데이터 mysql로 전송
     
-    ch_room.ch_room();
+    //ch_room.ch_room();
 
     Message select(db.getConnection());  // GET 요청 처리
     svr.Get("/chat/messages", [&](const httplib::Request& req, httplib::Response& res) {
