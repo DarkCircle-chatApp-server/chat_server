@@ -206,7 +206,7 @@ public:
 
             bool first = true;
             while (res->next()) {
-                if (!first) oss << ",";                                                         // 여러 개의 JSON 객체 구분
+                if (!first) oss << ",";                                                         // 여러 개의 JSON 객체 구분 /
                 first = false;
 
                 // JSON 객체를 문자열로 직접 구성 (순서 고정)
