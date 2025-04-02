@@ -1,7 +1,11 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
+#include "httplib.h"
 #include "DB.hpp"
 #include <ctime>
+
+using json = nlohmann::json;
 
 static int room_msg_num = 1;			// 채팅방 채팅 번호(갯수)
 static int outp_msg_id = 1;				// redis에서 빼와야할 채팅 msg_id
@@ -11,7 +15,6 @@ private:
 	const int user_id = 0;				// 유저 id 상수화 선언 (객체 생성시 고정 아이디 값)
 	int local_msg_id;					// 접속한 객체(계정)가 부여받는 msg_id 값
 
-	int r_all_msg = 0;					// redis에서 삭제해야할 채팅 갯수
 	int user_status = 0;				// 유저 상태값 상수화 선언 (디버그 모드일때 오류나서 일단 상수X)
 
 	string msg_text;		// 메시지 내용
@@ -69,10 +72,11 @@ private:
 
 	void del_chat_redis() {				// redis 데이터 삭제 함수
 		try {
-			string ins_m_id_redis = "msg_id:" + to_string(r_all_msg);		// msg_id 동적으로 입력받기
+			string ins_m_id_redis = "msg_id:" + to_string(outp_msg_id);		// msg_id 동적으로 입력받기
 			redis->del(ins_m_id_redis);
 
 			cout << "삭제 성공" << endl;
+			outp_msg_id += 1;				// redis에서 데이터 빼온 후 데이터 다 지워지면 +1 추가
 		}
 		catch (const Error& e) {
 			cerr << "Rediis 연결 오류: " << e.what() << endl;
@@ -101,8 +105,6 @@ private:
 				}
 			}
 			cout << endl;
-
-			outp_msg_id += 1;				// redis에서 빼와야할 채팅 갯수 // 다 빼오면 +1
 		}
 		catch (const Error& e) {
 			cerr << "Redis 연결 오류: " << e.what() << endl;
@@ -115,11 +117,14 @@ public:
 		stat_check();		// 객체 생성 시 유저 상태 확인
 	}
 
-	void insert_chat(string _msg_text) {		// 채팅 저장 함수
+	void insert_chat(const httplib::Request& req, httplib::Response& res) {		// 채팅 저장 함수
 		stat_check();		// 차단 됐는지 확인 후 값이 변경 됐으면 변경
+		json req_json = json::parse(req.body);
+
 		if (user_status != 3) {			// 임시 차단이 아니면 아래 코드 실행
-			cout << "채팅 입력 ";
-			getline(cin, msg_text);		// 채팅 입력 받기
+			//cout << "채팅 입력 ";
+			//getline(cin, msg_text);		// 채팅 입력 받기
+			msg_text = req_json["msg_text"];
 			current_date();		// 채팅 입력 후 바로 시간 입력받기
 
 			insert_chat_redis();		// 입력받은 채팅 redis로 저장
@@ -143,9 +148,8 @@ public:
 		}
 	}
 
-	void insert_chat_mysql() {			// Redis에 담은 채팅 데이터 MySQL로 이동
-		r_all_msg = room_msg_num;			// redis에 저장해야할 채팅 갯수
-
+	void insert_chat_mysql(const httplib::Request& req, httplib::Response& res) {			// Redis에 담은 채팅 데이터 MySQL로 이동
+		json req_json = json::parse(req.body);
 
 		while (true) {
 			out_chat_data_redis();				// redis 데이터 담기
@@ -169,7 +173,10 @@ public:
 					cout << "SQL State: " << e.getSQLState() << endl;
 				}
 				redis_to_mysql[0] = "";				// 다시 redis에서 꺼낸 값 초기화
+
+				res.set_content("Redis data into mysql", "text/plain");			// json 데이터로 웹에 실행 완료 메시지 보냄
 			}
+
 			else {
 				cout << "클라이언트에 Redis 데이터 없음!" << endl;
 				break;
