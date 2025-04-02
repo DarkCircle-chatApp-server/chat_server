@@ -142,6 +142,7 @@
     <ClInclude Include="change_pw.hpp" />
     <ClInclude Include="chat_ban.hpp" />
     <ClInclude Include="httplib.h" />
+    <ClInclude Include="json.hpp" />
     <ClInclude Include="user_check.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
