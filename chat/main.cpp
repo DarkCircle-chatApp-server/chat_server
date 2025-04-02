@@ -23,16 +23,28 @@ int main() {
     MySQLConnector db(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
     sql::Connection* s_conn = mysql_db_conn();              // MySQL DB연동
 
-    //R_Conn r_conn;
-    ////auto redis = make_shared<Redis>(r_conn.opts);
 
-    //Chat_send ch_send(1, "", "", s_conn, redis);
-    //Chat_room ch_room(redis);
+    R_Conn r_conn;
+    auto redis = make_shared<Redis>(r_conn.opts);
 
-    //ch_send.insert_chat();                  // 채팅 입력 후 redis로 전송
-    //ch_send.insert_chat_mysql();            // redis에 저장된 채팅 데이터 mysql로 전송
-    
-    //ch_room.ch_room();
+    Chat_room user(redis);
+    Chat_send client(1, "", "", s_conn, redis);
+
+    // 채팅방 입장(실행)
+    thread room(&Chat_room::ch_room, &user);
+    room.detach();
+
+    // 채팅 입력 및 채팅 값 바로 redis에 저장
+    svr.Post("/chat/room", [&](const httplib::Request& req, httplib::Response& res) {
+        user.ch_talk(req, res);
+        client.insert_chat(req, res);
+        });
+
+    // redis에 저장된 데이터 mysql에 저장
+    svr.Post("/chat/room/mysql", [&](const httplib::Request& req, httplib::Response& res) {
+        cout << "insert_chat_mysql" << endl;
+        client.insert_chat_mysql(req, res);
+        });
 
     Message select(db.getConnection());  // GET 요청 처리
     svr.Get("/chat/messages", [&](const httplib::Request& req, httplib::Response& res) {

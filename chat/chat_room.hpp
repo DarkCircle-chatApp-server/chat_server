@@ -1,7 +1,11 @@
 #pragma once
 
+#include <nlohmann/json.hpp>
+#include "httplib.h"
 #include "DB.hpp"
 #include "chat_send.hpp"
+
+using json = nlohmann::json;
 
 class Chat_room {
 private:
@@ -17,21 +21,21 @@ public:
 		Subscriber sub = ch_recive();			// 유저 입장(Thread 상태)
 		chrono::milliseconds(1000);				// 방 입장 전 잠시 대기
 
-		while (1) {							// 채팅 입력 (exit 방 나가기)
-			if (msg_text == "exit") break;
+		while (1) {
 			try {
 				sub.consume();
 			}
 			catch (const Error& e) {
 				cerr << "sub error : " << e.what() << endl;
 			}
-			ch_talk();
 		}
 	}
 
-	void ch_talk() {				// 채팅 입력 함수
-		cout << "채팅 입력 : ";
-		getline(cin, msg_text);
+	void ch_talk(const httplib::Request& req, httplib::Response& res) {				// 채팅 입력 함수
+		//cout << "채팅 입력 : ";
+		//getline(cin, msg_text);
+		json req_json = json::parse(req.body);
+		msg_text = req_json["msg_text"];
 		redis->publish("chat_room:1", msg_text);		// 채팅방에 보내기
 
 	}
