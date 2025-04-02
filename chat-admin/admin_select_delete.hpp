@@ -1,7 +1,7 @@
 #pragma once
 
 #include<iostream>
-#include<mysql/jdbc.h>
+#include <mysql/jdbc.h>
 #include<windows.h>
 #include "DB_admin.hpp"
 #include <sstream>
@@ -13,13 +13,13 @@ using namespace sql;
 
 class Select_delete {
 private:
-    Connection* conn;                                                                       // Connection Å¸ÀÔÀÇ Æ÷ÀÎÅÍ conn
+    Connection* conn;                                                                       // Connection íƒ€ì…ì˜ í¬ì¸í„° conn
 public:
-    Select_delete (Connection* dbconn) : conn(dbconn) {                                     // ÀÇÁ¸¼º ÁÖÀÔ. MySQLConnector °´Ã¼·ÎºÎÅÍ ÁÖÀÔ¹ŞÀ½
+    Select_delete (Connection* dbconn) : conn(dbconn) {                                     // ì˜ì¡´ì„± ì£¼ì…. MySQLConnector ê°ì²´ë¡œë¶€í„° ì£¼ì…ë°›ìŒ
 
     }
 
-    // »ç¿ëÀÚ Á¤º¸ Á¶È¸ ÈÄ JSON ¹İÈ¯ (login_id, user_name, user_status¸¸ Æ÷ÇÔ)
+    // ì‚¬ìš©ì ì •ë³´ ì¡°íšŒ í›„ JSON ë°˜í™˜ (login_id, user_name, user_statusë§Œ í¬í•¨)
     json All_Select() {
         json result_json = json::array();
 
@@ -45,12 +45,12 @@ public:
         return result_json;
     }
 
-     // GET ¿äÃ»À» Ã³¸®ÇÏ¿© JSON ÀÀ´ä ¹İÈ¯
-    // GET ¿äÃ»¿¡¼­´Â req.body¸¦ »ç¿ëÇÒ ¼ö ¾ø´Ù°í ÇÔ, GET ¿äÃ»¿¡¼­´Â URL Äõ¸® ¸Å°³º¯¼ö¸¦ È°¿ëÇØ¾ß ÇÔ.
+     // GET ìš”ì²­ì„ ì²˜ë¦¬í•˜ì—¬ JSON ì‘ë‹µ ë°˜í™˜
+    // GET ìš”ì²­ì—ì„œëŠ” req.bodyë¥¼ ì‚¬ìš©í•  ìˆ˜ ì—†ë‹¤ê³  í•¨, GET ìš”ì²­ì—ì„œëŠ” URL ì¿¼ë¦¬ ë§¤ê°œë³€ìˆ˜ë¥¼ í™œìš©í•´ì•¼ í•¨.
     void handle_admin_select(const httplib::Request& req, httplib::Response& res) {
         try {
-            json users = All_Select();                                                 // MySQL µ¥ÀÌÅÍ Á¶È¸
-            res.set_content(users.dump(), "application/json");                        // JSON ÀÀ´ä ¹İÈ¯
+            json users = All_Select();                                                 // MySQL ë°ì´í„° ì¡°íšŒ
+            res.set_content(users.dump(), "application/json");                        // JSON ì‘ë‹µ ë°˜í™˜
         }
         catch (const SQLException& e) {
             cout << "Query failed: " << e.what() << endl;
@@ -59,9 +59,9 @@ public:
     }
 
 
-    void Update_Status(const int& user_id) {                                        // È¸¿ø »èÁ¦
+    void Update_Status(const int& user_id) {                                        // íšŒì› ì‚­ì œ
         try {
-                                                                                    // ÇöÀç user_status È®ÀÎ
+                                                                                    // í˜„ì¬ user_status í™•ì¸
             unique_ptr<PreparedStatement> checkStmt(conn->prepareStatement("SELECT user_status FROM User WHERE user_id = ?"));
             checkStmt->setInt(1, user_id);
             unique_ptr<ResultSet> res(checkStmt->executeQuery());
@@ -69,50 +69,50 @@ public:
             if (res->next()) {
                 int current_status = res->getInt("user_status");
                 if (current_status == 2) {
-                    cout << u8"ÀÌ¹Ì »èÁ¦µÈ user_id: " << user_id << endl;
+                    cout << u8"ì´ë¯¸ ì‚­ì œëœ user_id: " << user_id << endl;
                     return;
                 }
 
                 else {
-                                                                                    // user_status º¯°æ (È¸¿ø »èÁ¦ Ã³¸®)
+                                                                                    // user_status ë³€ê²½ (íšŒì› ì‚­ì œ ì²˜ë¦¬)
                     unique_ptr<PreparedStatement> pstmt(conn->prepareStatement("UPDATE User SET user_status = 2 WHERE user_id = ?"));
-                    pstmt->setInt(1, user_id);                                      // Ã¹¹øÂ° ¹°À½Ç¥ ÁöÁ¤
-                    int Status_Change = pstmt->executeUpdate();                     // executeUpdate()´Â ÇàÀÇ °³¼ö¸¦ ¹İÈ¯
+                    pstmt->setInt(1, user_id);                                      // ì²«ë²ˆì§¸ ë¬¼ìŒí‘œ ì§€ì •
+                    int Status_Change = pstmt->executeUpdate();                     // executeUpdate()ëŠ” í–‰ì˜ ê°œìˆ˜ë¥¼ ë°˜í™˜
 
-                    if (Status_Change > 0) {                                        // »èÁ¦ÇÒ ÇàÀÌ ÀÖÀ¸¸é ½ÇÇà
-                        cout << u8"User ID " << user_id << u8" »óÅÂ°¡ 2·Î º¯°æµÇ¾ú½À´Ï´Ù." << endl;
+                    if (Status_Change > 0) {                                        // ì‚­ì œí•  í–‰ì´ ìˆìœ¼ë©´ ì‹¤í–‰
+                        cout << u8"User ID " << user_id << u8" ìƒíƒœê°€ 2ë¡œ ë³€ê²½ë˜ì—ˆìŠµë‹ˆë‹¤." << endl;
                     }
                     else {
-                        cout << u8"¾÷µ¥ÀÌÆ® ½ÇÆĞ: user_id " << user_id << u8"À»(¸¦) Ã£À» ¼ö ¾øÀ½" << endl;
+                        cout << u8"ì—…ë°ì´íŠ¸ ì‹¤íŒ¨: user_id " << user_id << u8"ì„(ë¥¼) ì°¾ì„ ìˆ˜ ì—†ìŒ" << endl;
                     }
                     return;
                 }
             }
         }
         catch (SQLException& e) {
-            cout << u8"½ÇÆĞ: " << e.what() << endl;
+            cout << u8"ì‹¤íŒ¨: " << e.what() << endl;
         }
     }
 
-    void Delete_Message(const int& msg_id) {                                           //  ¸Ş¼¼Áö »èÁ¦
+    void Delete_Message(const int& msg_id) {                                           //  ë©”ì„¸ì§€ ì‚­ì œ
         try {
             unique_ptr<PreparedStatement> pstmt(conn->prepareStatement("DELETE FROM Message WHERE msg_id = ?"));
             pstmt->setInt(1, msg_id);
             int Message_userid = pstmt->executeUpdate();
 
             if (Message_userid > 0) {
-                cout << u8"¸Ş½ÃÁö°¡ ¼º°øÀûÀ¸·Î »èÁ¦µÇ¾ú½À´Ï´Ù." << endl;
+                cout << u8"ë©”ì‹œì§€ê°€ ì„±ê³µì ìœ¼ë¡œ ì‚­ì œë˜ì—ˆìŠµë‹ˆë‹¤." << endl;
             }
             else {
-                cout << u8"»èÁ¦ÇÒ ¸Ş½ÃÁö°¡ ¾ø½À´Ï´Ù." << endl;
+                cout << u8"ì‚­ì œí•  ë©”ì‹œì§€ê°€ ì—†ìŠµë‹ˆë‹¤." << endl;
             }
         }
         catch (SQLException& e) {
-            cout << u8"½ÇÆĞ: " << e.what() << endl;
+            cout << u8"ì‹¤íŒ¨: " << e.what() << endl;
         }
     }       
 
-    void handle_admin_user_delete(const httplib::Request& req, httplib::Response& res) {                // È¸¿ø »èÁ¦ api ¿¬µ¿ 
+    void handle_admin_user_delete(const httplib::Request& req, httplib::Response& res) {                // íšŒì› ì‚­ì œ api ì—°ë™ 
         try {
             json req_json = json::parse(req.body);
 
@@ -126,7 +126,7 @@ public:
         }
     }
 
-    void handle_amdim_message_delete(const httplib::Request& req, httplib::Response& res) {            // ¸Ş¼¼Áö »èÁ¦ api ¿¬µ¿
+    void handle_amdim_message_delete(const httplib::Request& req, httplib::Response& res) {            // ë©”ì„¸ì§€ ì‚­ì œ api ì—°ë™
         try {
             json req_json = json::parse(req.body);
 
@@ -140,9 +140,9 @@ public:
         }
     }
 
-    void Update_Admin_status(const int& user_id) {                                        // °ü¸®ÀÚ ±ÇÇÑ ºÎ¿© 
+    void Update_Admin_status(const int& user_id) {                                        // ê´€ë¦¬ì ê¶Œí•œ ë¶€ì—¬ 
         try {
-            // ÇöÀç user_status È®ÀÎ
+            // í˜„ì¬ user_status í™•ì¸
             unique_ptr<PreparedStatement> checkStmt(conn->prepareStatement("SELECT user_status FROM User WHERE user_id = ?"));
             checkStmt->setInt(1, user_id);
             unique_ptr<ResultSet> res(checkStmt->executeQuery());
@@ -150,32 +150,32 @@ public:
             if (res->next()) {
                 int current_status = res->getInt("user_status");
                 if (current_status == 0) {
-                    cout << u8"ÀÌ¹Ì °ü¸®ÀÚ ±ÇÇÑÀÔ´Ï´Ù. " << endl;
+                    cout << u8"ì´ë¯¸ ê´€ë¦¬ì ê¶Œí•œì…ë‹ˆë‹¤. " << endl;
                     return;
                 }
 
                 else {
-                    // user_status º¯°æ (°ü¸®ÀÚ ±ÇÇÑ Ã³¸®)
+                    // user_status ë³€ê²½ (ê´€ë¦¬ì ê¶Œí•œ ì²˜ë¦¬)
                     unique_ptr<PreparedStatement> pstmt(conn->prepareStatement("UPDATE User SET user_status = 0 WHERE user_id = ?"));
-                    pstmt->setInt(1, user_id);                                      // Ã¹¹øÂ° ¹°À½Ç¥ ÁöÁ¤
-                    int Status_Change = pstmt->executeUpdate();                     // executeUpdate()´Â ÇàÀÇ °³¼ö¸¦ ¹İÈ¯
+                    pstmt->setInt(1, user_id);                                      // ì²«ë²ˆì§¸ ë¬¼ìŒí‘œ ì§€ì •
+                    int Status_Change = pstmt->executeUpdate();                     // executeUpdate()ëŠ” í–‰ì˜ ê°œìˆ˜ë¥¼ ë°˜í™˜
 
-                    if (Status_Change > 0) {                                        // »èÁ¦ÇÒ ÇàÀÌ ÀÖÀ¸¸é ½ÇÇà
-                        cout << u8"User ID " << user_id << u8" »óÅÂ°¡ 0À¸·Î º¯°æµÇ¾ú½À´Ï´Ù." << endl;
+                    if (Status_Change > 0) {                                        // ì‚­ì œí•  í–‰ì´ ìˆìœ¼ë©´ ì‹¤í–‰
+                        cout << u8"User ID " << user_id << u8" ìƒíƒœê°€ 0ìœ¼ë¡œ ë³€ê²½ë˜ì—ˆìŠµë‹ˆë‹¤." << endl;
                     }
                     else {
-                        cout << u8"¾÷µ¥ÀÌÆ® ½ÇÆĞ: user_id " << user_id << u8"À»(¸¦) Ã£À» ¼ö ¾øÀ½" << endl;
+                        cout << u8"ì—…ë°ì´íŠ¸ ì‹¤íŒ¨: user_id " << user_id << u8"ì„(ë¥¼) ì°¾ì„ ìˆ˜ ì—†ìŒ" << endl;
                     }
                     return;
                 }
             }
         }
         catch (SQLException& e) {
-            cout << u8"½ÇÆĞ: " << e.what() << endl;
+            cout << u8"ì‹¤íŒ¨: " << e.what() << endl;
         }
     }
 
-    void handle_admin_status(const httplib::Request& req, httplib::Response& res) {                // °ü¸®ÀÚ ±ÇÇÑ ºÎ¿© api ¿¬µ¿ 
+    void handle_admin_status(const httplib::Request& req, httplib::Response& res) {                // ê´€ë¦¬ì ê¶Œí•œ ë¶€ì—¬ api ì—°ë™ 
         try {
             json req_json = json::parse(req.body);
 
@@ -189,7 +189,7 @@ public:
         }
     }
 
-    //json User_Select(const string& login_id) {                                                                      // ¸¶ÀÌÆäÀÌÁö(º»ÀÎ È¸¿øÁ¤º¸ Á¶È¸) - ¼ø¼­x
+    //json User_Select(const string& login_id) {                                                                      // ë§ˆì´í˜ì´ì§€(ë³¸ì¸ íšŒì›ì •ë³´ ì¡°íšŒ) - ìˆœì„œx
     //    json result_json = json::array();
 
     //    try {
@@ -202,7 +202,7 @@ public:
     //        while (res->next()) {
     //            json user;
     //            int user_id = res->getInt("user_id");  
-    //            cout << "Fetched user_id: " << user_id << endl; // ÄÜ¼Ö Ãâ·Â µÇ´ÂÁö È®ÀÎ
+    //            cout << "Fetched user_id: " << user_id << endl; // ì½˜ì†” ì¶œë ¥ ë˜ëŠ”ì§€ í™•ì¸
     //            user["user_id"] = res->getInt("user_id");
     //            user["login_id"] = res->getString("login_id");
     //            user["login_pw"] = res->getString("login_pw");
@@ -222,9 +222,9 @@ public:
     //}
 
     
-    //void handle_user_select(const httplib::Request& req, httplib::Response& res) {                                    // user select api ¿¬µ¿ - ¼ø¼­ x
+    //void handle_user_select(const httplib::Request& req, httplib::Response& res) {                                    // user select api ì—°ë™ - ìˆœì„œ x
     //    try {
-    //        // ¿äÃ» º»¹®ÀÌ ºñ¾îÀÖ´ÂÁö È®ÀÎ
+    //        // ìš”ì²­ ë³¸ë¬¸ì´ ë¹„ì–´ìˆëŠ”ì§€ í™•ì¸
     //        if (req.body.empty()) {
     //            res.status = 400;
     //            res.set_content(R"({"error": "Request body is empty"})", "application/json");
@@ -233,7 +233,7 @@ public:
 
     //        auto body_json = json::parse(req.body);
 
-    //        // login_id°¡ ¾ø°Å³ª ºñ¾îÀÖ´ÂÁö È®ÀÎ
+    //        // login_idê°€ ì—†ê±°ë‚˜ ë¹„ì–´ìˆëŠ”ì§€ í™•ì¸
     //        if (!body_json.contains("login_id") || body_json["login_id"].is_null() || body_json["login_id"].get<string>().empty()) {
     //            res.status = 400;
     //            res.set_content(R"({"error": "login_id is required and cannot be empty"})", "application/json");
@@ -241,9 +241,9 @@ public:
     //        }
 
     //        string login_id = body_json["login_id"];
-    //        json users = User_Select(login_id);                             // Æ¯Á¤ login_idÀÇ »ç¿ëÀÚ Á¶È¸
+    //        json users = User_Select(login_id);                             // íŠ¹ì • login_idì˜ ì‚¬ìš©ì ì¡°íšŒ
 
-    //        // Á¶È¸µÈ °á°ú°¡ ¾ø´Â °æ¿ì Ã³¸®
+    //        // ì¡°íšŒëœ ê²°ê³¼ê°€ ì—†ëŠ” ê²½ìš° ì²˜ë¦¬
     //        if (users.empty()) {
     //            res.status = 404;
     //            res.set_content("error: User not found", "application/json");
@@ -260,9 +260,9 @@ public:
 
     using json = nlohmann::json;
 
-    std::string User_Select(const std::string& login_id) {                                                                      // ¸¶ÀÌÆäÀÌÁö(º»ÀÎ È¸¿øÁ¤º¸ Á¶È¸) - ¼ø¼­x
-        std::ostringstream oss;  // JSON ¹®ÀÚ¿­À» ÀúÀåÇÒ ½ºÆ®¸²
-        oss << "["; // JSON ¹è¿­ ½ÃÀÛ
+    std::string User_Select(const std::string& login_id) {                                                                      // ë§ˆì´í˜ì´ì§€(ë³¸ì¸ íšŒì›ì •ë³´ ì¡°íšŒ) - ìˆœì„œx
+        std::ostringstream oss;  // JSON ë¬¸ìì—´ì„ ì €ì¥í•  ìŠ¤íŠ¸ë¦¼
+        oss << "["; // JSON ë°°ì—´ ì‹œì‘
 
         try {
             unique_ptr<PreparedStatement> stmt(conn->prepareStatement(
@@ -272,11 +272,13 @@ public:
             unique_ptr<ResultSet> res(stmt->executeQuery());
 
             bool first = true;
+          
             while (res->next()) {
-                if (!first) oss << ","; // ¿©·¯ °³ÀÇ JSON °´Ã¼ ±¸ºĞ
+              
+                if (!first) oss << ","; // ì—¬ëŸ¬ ê°œì˜ JSON ê°ì²´ êµ¬ë¶„
                 first = false;
 
-                // JSON °´Ã¼¸¦ ¹®ÀÚ¿­·Î Á÷Á¢ ±¸¼º (¼ø¼­ °íÁ¤)
+                // JSON ê°ì²´ë¥¼ ë¬¸ìì—´ë¡œ ì§ì ‘ êµ¬ì„± (ìˆœì„œ ê³ ì •)
                 oss << "{"
                     << "\"user_id\":" << res->getInt("user_id") << ","
                     << "\"login_id\":\"" << res->getString("login_id") << "\","
@@ -287,16 +289,33 @@ public:
                     << "\"user_email\":\"" << res->getString("user_email") << "\","
                     << "\"user_birthdate\":\"" << res->getString("user_birthdate") << "\""
                     << "}";
+
+                json user;
+                int user_id = res->getInt("user_id");  
+                cout << "Fetched user_id: " << user_id << endl; // ì½˜ì†” ì¶œë ¥ ë˜ëŠ”ì§€ í™•ì¸
+			//cout << "ì‹œë°œã…‹ã…‹ã…‹ã…‹ã…‹ã…‹ã…‹ã…‹ã…‹ã…‹ã…‹ã…‹" << res->getInt("user_id") << endl;
+
+                user["user_id"] = res->getInt("user_id");
+                user["login_id"] = res->getString("login_id");
+                user["login_pw"] = res->getString("login_pw");
+                user["user_name"] = res->getString("user_name");
+                user["user_addr"] = res->getString("user_addr");
+                user["user_phone"] = res->getString("user_phone");
+                user["user_email"] = res->getString("user_email");
+                user["user_birthdate"] = res->getString("user_birthdate");
+                result_json.push_back(user);
+
             }
+            //cout << "User ID: " << res->getInt("user_id") << endl;
         }
         catch (const SQLException& e) {
             std::cerr << "Query failed: " << e.what() << std::endl;
         }
 
-        oss << "]"; // JSON ¹è¿­ ´İ±â
-        return oss.str(); // JSON ¹®ÀÚ¿­ ¹İÈ¯
+        oss << "]"; // JSON ë°°ì—´ ë‹«ê¸°
+        return oss.str(); // JSON ë¬¸ìì—´ ë°˜í™˜
     }
-    void handle_user_select(const httplib::Request& req, httplib::Response& res) {                                                          // user select api ¿¬µ¿ - ¼ø¼­ x
+    void handle_user_select(const httplib::Request& req, httplib::Response& res) {                                                          // user select api ì—°ë™ - ìˆœì„œ x
         try {
             if (req.body.empty()) {
                 res.status = 400;
@@ -304,7 +323,7 @@ public:
                 return;
             }
 
-            // login_id°¡ ¾ø°Å³ª ºñ¾îÀÖ´ÂÁö È®ÀÎ
+            // login_idê°€ ì—†ê±°ë‚˜ ë¹„ì–´ìˆëŠ”ì§€ í™•ì¸
             auto body_json = json::parse(req.body);
             if (!body_json.contains("login_id") || body_json["login_id"].is_null() || body_json["login_id"].get<std::string>().empty()) {
                 res.status = 400;
@@ -315,7 +334,7 @@ public:
             std::string login_id = body_json["login_id"];
             std::string users_json = User_Select(login_id);
 
-            if (users_json == "[]") {  // Á¶È¸µÈ °á°ú°¡ ¾ø´Â °æ¿ì
+            if (users_json == "[]") {  // ì¡°íšŒëœ ê²°ê³¼ê°€ ì—†ëŠ” ê²½ìš°
                 res.status = 404;
                 res.set_content("error: User not found", "application/json");
                 return;

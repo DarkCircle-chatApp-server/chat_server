@@ -143,7 +143,7 @@ void routing_ban(const httplib::Request& req, httplib::Response& res) {
 
 void routing_showUsers(const httplib::Request& req, httplib::Response& res) {
     httplib::Client cli("http://localhost:5004");
-    std::string url = "/chat/admin/user_select";
+    std::string url = "/chat/admin/admin_select";
     auto response = cli.Get(url.c_str());
     if (response) {
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -185,6 +185,38 @@ void routing_adminUnban(const httplib::Request& req, httplib::Response& res) {
         res.status = 500; // 서버 오류 응답
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content("Error fetching data from /chat/admin/unban", "text/plain");
+    }
+}
+
+void routing_setAdmin(const httplib::Request& req, httplib::Response& res) {
+    httplib::Client cli("http://localhost:5004");
+    auto response = cli.Put("/chat/admin/status_update", req.body, "application/json");
+    if (response) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.status = response->status;
+        std::cout << "Backend response: " << response->body << std::endl;
+        res.set_content(response->body, response->get_header_value("Content-Type"));
+    }
+    else {
+        res.status = 500; // 서버 오류 응답
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_content("Error fetching data from /chat/admin/unban", "text/plain");
+    }
+}
+
+void routing_admin_select(const httplib::Request& req, httplib::Response& res) {
+    httplib::Client cli("http://localhost:5004");
+    auto response = cli.Post("/chat/admin/user_select", req.body, "application/json");
+    if (response) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.status = response->status;
+        std::cout << "Backend response: " << response->body << std::endl;
+        res.set_content(response->body, response->get_header_value("Content-Type"));
+    }
+    else {
+        res.status = 500; // 서버 오류 응답
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_content("Error fetching data from /signIn", "text/plain");
     }
 }
 
@@ -261,6 +293,20 @@ int main() {
         res.status = 204;
         });
 
+    svr.Options("/chat/admin/status_update", [](const httplib::Request&, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+        });
+
+    svr.Options("/chat/admin/user_select", [](const httplib::Request&, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+        });
+
     // "/" 경로에 대해 handleRoot 함수 연결
     svr.Get("/", handleRoot);
 
@@ -282,11 +328,16 @@ int main() {
 
     svr.Put("/chat/admin/ban", routing_ban);
 
-    svr.Get("/chat/admin/user_select", routing_showUsers);
+    svr.Get("/chat/admin/admin_select", routing_showUsers);
 
     svr.Put("/chat/admin/user_delete", routing_adminBan);
 
     svr.Put("/chat/admin/unban", routing_adminUnban);
+
+    svr.Put("/chat/admin/status_update", routing_setAdmin);
+
+    svr.Post("/chat/admin/user_select", routing_admin_select);
+
 
 
 

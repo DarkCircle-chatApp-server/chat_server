@@ -27,6 +27,7 @@ int main() {
     Select_delete user_select(db.getConnection());                                               // 개인 조회 POST 요청 처리
                                                                                                  // 입력받을 body가 있어야되서 post 사용함
     svr.Post("/chat/admin/user_select", [&](const httplib::Request& req, httplib::Response& res) {
+		cout << "user_select" << endl;
         user_select.handle_user_select(req, res);
         });
 

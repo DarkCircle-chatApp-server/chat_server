@@ -6,16 +6,16 @@
 #include "DB.hpp"  // MySQLConnector 클래스를 포함하는 헤더
 #include "httplib.h"
 #include "json.hpp"
-
+ 
 using namespace std;
 using json = nlohmann::json;
 
 class Message {
 private:
-    sql::Connection* conn; // MySQL 연결 객체
+    Connection* conn; // MySQL 연결 객체
 
 public:
-    Message(sql::Connection* _conn) : conn(_conn) {
+    Message(Connection* _conn) : conn(_conn) {
         if (!conn) {
             cerr << "Error: Connection pointer is null!" << endl;
         }

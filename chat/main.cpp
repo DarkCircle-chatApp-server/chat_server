@@ -1,12 +1,14 @@
+#include "DB.hpp"
+
 #include <iostream>
 #include "httplib.h"
 #include "chat_send.hpp"
-#include "DB.hpp"
+#include "chat_room.hpp"
 #include "test.hpp"
 
 using namespace sql;
 using json = nlohmann::json;
-// 채팅 관련 함수
+// 채팅 관련 함수 
 void handleChat(const httplib::Request& req, httplib::Response& res) {
 
     // 내부 로직 기능
@@ -16,14 +18,21 @@ void handleChat(const httplib::Request& req, httplib::Response& res) {
 
 int main() {
     SetConsoleOutputCP(CP_UTF8);
-    MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
-
     httplib::Server svr;    // httplib::Server 객체 생성
 
-    // 메인함수에서 임시로 돌려본 코드
-    Connection* conn = mysql_db_conn();
+    MySQLConnector db(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
+    sql::Connection* s_conn = mysql_db_conn();              // MySQL DB연동
 
-    //Chat_send test(1, "", "", conn);
+    R_Conn r_conn;
+    auto redis = make_shared<Redis>(r_conn.opts);
+
+    Chat_send ch_send(1, "", "", s_conn, redis);
+    Chat_room ch_room(redis);
+
+    //ch_send.insert_chat();                  // 채팅 입력 후 redis로 전송
+    //ch_send.insert_chat_mysql();            // redis에 저장된 채팅 데이터 mysql로 전송
+    
+    ch_room.ch_room();
 
     Message select(db.getConnection());  // GET 요청 처리
     svr.Get("/chat/messages", [&](const httplib::Request& req, httplib::Response& res) {
