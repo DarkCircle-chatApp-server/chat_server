@@ -7,11 +7,11 @@
 
 using json = nlohmann::json;
 
-static int room_msg_num = 1;			// 채팅방 채팅 번호(갯수)
+static int room_msg_num = 0;			// 채팅방 채팅 번호(갯수)
 static int outp_msg_id = 1;				// redis에서 빼와야할 채팅 msg_id
 
 class Chat_send {
-private:
+protected:
 	const int user_id = 0;				// 유저 id 상수화 선언 (객체 생성시 고정 아이디 값)
 	int local_msg_id = 1;					// redis에 저장하기 직전 입력받은 채팅의 번호
 
@@ -84,7 +84,7 @@ private:
 
 			//cout << "삭제 성공" << endl;
 			r_data_num++;				// redis에서 데이터 빼온 후 데이터 다 지워지면 +1 추가
-
+			this_thread::sleep_for(chrono::milliseconds(500));				// redis 서버 대기 (과부하로 redis 명령어 입력 지연 = 삭제X)
 			return true;				// 데이터 1개 삭제 시 true 반환
 		}
 		catch (const Error& e) {
@@ -125,6 +125,13 @@ public:
 	Chat_send(int _user_id, const char* _msg_text, const char* _msg_time, shared_ptr<sql::Connection> _m_conn, shared_ptr<Redis> _redis)
 		: user_id(_user_id), msg_text(_msg_text), msg_time(_msg_time), m_conn(move(_m_conn)), redis(_redis) {
 		stat_check();		// 객체 생성 시 유저 상태 확인
+		
+		if (user_id == 1) {			// 계정이 관리자 일 때 실행	(관리자 id db에 저장 안되있어서 1로 함 나중에 수정)
+			thread auto_save([&]() {		// auto save 스레드 생성
+				auto_save_mysql();
+				});
+			auto_save.detach();			// auto_save_mysql 함수 스레드 분리
+		}
 	}
 	~Chat_send() {
 		if (user_id == 1) insert_chat_mysql();			// 관리자가 프로그램을 정상 종료해야 저장됨 (관리자 id db에 저장안되있어서 일부러 1로함)
@@ -149,30 +156,43 @@ public:
 
 	void insert_chat_redis() {		// 입력받은 채팅 redis로 저장하는 함수
 		try {
-			local_msg_id = room_msg_num++;				// 현재 채팅 내역을 local_msg_id에 저장하면서 전역 변수 값 +1 
+			room_msg_num++;
+			local_msg_id = room_msg_num;	// 현재 채팅 내역을 local_msg_id에 저장하면서 전역 변수 값 +1
 
 			string ins_m_id_redis = "msg_id:" + to_string(local_msg_id);		// msg_id 동적으로 입력받기
 			string r_msg_id = to_string(user_id);
 
 			unordered_map<string, string> cols = { {"user_id", r_msg_id}, {"msg_text", msg_text}, {"msg_time", msg_time} };
 			redis->hmset(ins_m_id_redis, cols.begin(), cols.end());
+
 		}
 		catch (const Error& e) {
 			cerr << "Redis 연결 오류: " << e.what() << endl;
+			room_msg_num--;
+			local_msg_id--;
+		}
+	}
+
+	void auto_save_mysql() {			// 자동 저장 함수
+		while (true) {
+			insert_chat_mysql();
+			this_thread::sleep_for(chrono::minutes(1));
 		}
 	}
 
 	void insert_chat_mysql() {			// Redis에 담은 채팅 데이터 MySQL로 이동
 		//json req_json = json::parse(req.body);
-		m_conn->setAutoCommit(false);
-
-		if (r_data_num < s_data_num) {		// redis 데이터 삭제 실패 했을 경우 redis 데이터 먼저 삭제
+		if ((r_data_num < s_data_num)) {		// redis 데이터 삭제 실패 했을 경우 redis 데이터 먼저 삭제
 			while (true) {
 				bool del_check = del_chat_redis();					// 데이터 이전 이후 남은 Redis 데이터 삭제
-				if (r_data_num >= s_data_num) break;				// 다 지웠을 경우 while문 탈출
-				if (!del_chat_redis()) return;						// Redis 삭제 에러 시 함수 탈출
+				if (r_data_num <= s_data_num) break;			// 다 지웠을 경우 while문 탈출
+				if (!del_check) {
+					return;								// Redis 삭제 에러 시 함수 탈출
+				}
 			}
 		}
+
+		m_conn->setAutoCommit(false);		// 트랜잭션 적용
 
 		r_data_num = room_msg_num;				// Redis에서 MySQL로 데이터를 넘겨야 할 갯수
 		check_s_data = s_data_num;				// 쿼리문 돌기 전 sql 초기값
@@ -218,7 +238,8 @@ public:
 
 		while (true) {
 			bool del_check = del_chat_redis();					// 데이터 이전 이후 남은 Redis 데이터 삭제
-			if ((r_data_num >= s_data_num) || (del_check == false)) break;		//		다 지웠거나 오류났을 시 탈출
+			//cout << r_data_num << " " << s_data_num << endl;
+			if ((r_data_num <= s_data_num) || (del_check == false)) break;		//		다 지웠거나 오류났을 시 탈출
 		}
 
 

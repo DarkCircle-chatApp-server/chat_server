@@ -27,12 +27,8 @@ int main() {
     R_Conn r_conn;
     auto redis = make_shared<Redis>(r_conn.opts);
 
-    Chat_room user(redis);
+    Chat_room user(redis);          // 채팅방 생성 및 입장 클래스
     Chat_send client(1, "", "", s_conn, redis);
-
-    // 채팅방 입장(실행)
-    thread room(&Chat_room::ch_room, &user);
-    room.detach();
 
     //return 0;       // 소멸자 확인용
 
