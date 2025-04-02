@@ -202,7 +202,7 @@ public:
                 json user;
                 int user_id = res->getInt("user_id");  
                 cout << "Fetched user_id: " << user_id << endl; // 콘솔 출력 되는지 확인
-			//cout << "시발ㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋㅋ" << res->getInt("user_id") << endl;
+			//cout << "출력확인" << res->getInt("user_id") << endl;
 
                 user["user_id"] = res->getInt("user_id");
                 user["login_id"] = res->getString("login_id");
