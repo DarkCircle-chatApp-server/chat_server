@@ -12,7 +12,7 @@ static int room_msg_num = 1;			// 채팅방 채팅 번호(갯수)
 class Chat_send {
 protected:
 	const int user_id = 0;				// 유저 id 상수화 선언 (객체 생성시 고정 아이디 값)
-	int local_msg_id = 1;					// redis에 저장하기 직전 입력받은 채팅의 번호
+	int local_msg_id = 1;				// redis에 저장하기 직전 입력받은 채팅의 번호
 
 	int user_status = 0;				// 유저 상태값 상수화 선언 (디버그 모드일때 오류나서 일단 상수X)
 	
@@ -200,11 +200,11 @@ public:
 
 			if (!redis_to_mysql[0].empty()) {		// redis 에서 데이터를 성공적으로 담은지 확인
 
-				int _user_id = stoi(redis_to_mysql[0]);			// redis에 저장된 user_id 값 형 변환
+				int change_id = stoi(redis_to_mysql[0]);			// redis에 저장된 user_id 값 형 변환
 
 				try {
 					unique_ptr<PreparedStatement> pstmt(m_conn->prepareStatement("INSERT INTO Message (user_id, msg_text, msg_time) VALUES(?, ?, ?)"));
-					pstmt->setInt(1, _user_id);
+					pstmt->setInt(1, change_id);
 					pstmt->setString(2, redis_to_mysql[1]);
 					pstmt->setDateTime(3, redis_to_mysql[2]);
 					pstmt->executeUpdate();
