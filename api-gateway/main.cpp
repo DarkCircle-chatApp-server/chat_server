@@ -240,6 +240,21 @@ void routing_send_chat(const httplib::Request& req, httplib::Response& res) {
     }
 }
 
+void routing_showMessages(const httplib::Request& req, httplib::Response& res) {
+    httplib::Client cli("http://localhost:8881");
+    std::string url = "/chat/messages";
+    auto response = cli.Get(url.c_str());
+    if (response) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_content(response->body, "application/json");
+    }
+    else {
+        res.status = 500;
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_content("Error fetching data from /chat/admin/user_select", "text/plain");
+    }
+}
+
 int main() {
     httplib::Server svr;
 
@@ -334,6 +349,13 @@ int main() {
         res.status = 204;
         });
 
+    svr.Options("/chat/messages", [](const httplib::Request&, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+        });
+
     // "/" 경로에 대해 handleRoot 함수 연결
     svr.Get("/", handleRoot);
 
@@ -366,6 +388,9 @@ int main() {
     svr.Post("/chat/admin/user_select", routing_admin_select);
 
     svr.Post("/chat/room", routing_send_chat);
+    
+    svr.Get("/chat/messages", routing_showMessages);
+
 
     // CORS 설정
     //svr.set_default_headers({
