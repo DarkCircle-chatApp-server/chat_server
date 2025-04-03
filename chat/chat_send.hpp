@@ -16,6 +16,10 @@ protected:
 	int local_msg_id = 1;					// redis에 저장하기 직전 입력받은 채팅의 번호
 
 	int user_status = 0;				// 유저 상태값 상수화 선언 (디버그 모드일때 오류나서 일단 상수X)
+	
+	int r_data_num = 1;					// Redis에서 sql로 데이터를 넣은 후 Redis에 지워야 할 데이터 수
+	int check_s_data = 1;				// 처음 s_data_num 값
+	int s_data_num = 1;					// MySQL로 넘겨줄 데이터 수
 
 	int r_data_num = 1;					// Redis에서 sql로 데이터를 넣은 후 Redis에 지워야 할 데이터 수
 	int check_s_data = 1;				// 처음 s_data_num 값

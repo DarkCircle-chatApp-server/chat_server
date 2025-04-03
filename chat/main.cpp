@@ -21,20 +21,20 @@ int main() {
     httplib::Server svr;    // httplib::Server 객체 생성
 
 
+
     //MySQLConnector db(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
     shared_ptr<sql::Connection> s_conn = mysql_db_conn();              // MySQL DB연동
+
 
 
 
     R_Conn r_conn;
     auto redis = make_shared<Redis>(r_conn.opts);
 
-    Chat_room user(redis);
+    Chat_room user(redis);          // 채팅방 생성 및 입장 클래스
     Chat_send client(1, "", "", s_conn, redis);
 
-    // 채팅방 입장(실행)
-    thread room(&Chat_room::ch_room, &user);
-    room.detach();
+    //return 0;       // 소멸자 확인용
 
     // 채팅 입력 및 채팅 값 바로 redis에 저장
     svr.Post("/chat/room", [&](const httplib::Request& req, httplib::Response& res) {
@@ -44,8 +44,10 @@ int main() {
 
     // redis에 저장된 데이터 mysql에 저장
     svr.Post("/chat/room/mysql", [&](const httplib::Request& req, httplib::Response& res) {
+
         cout << "insert_chat_mysql" << endl;
         client.insert_chat_mysql();
+
         });
 
     Message select(s_conn);  // GET 요청 처리

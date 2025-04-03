@@ -36,11 +36,10 @@ private:
     Birthdate user_birthdate;
     Connection* conn;   // Connection 타입의 포인터 conn
 public:
-    SignIn(Connection* dbconn) : conn(dbconn) {      // 의존성 주입. MySQLConnector 객체로부터 주입받음
-
+    SignIn(Connection* dbconn) : conn(move(dbconn)) {      // 의존성 주입. MySQLConnector 객체로부터 주입받음.
+                                                           // 복사하지 않고 이동생성자로 초기화
     }
     ~SignIn() {
-        //delete conn;
     }
     // user_id 조회
     int get_key(const string& login_id) {
@@ -146,6 +145,10 @@ public:
             return -1;
         }
         try {
+            if (!conn) {
+                cerr << "Database connection is not initialized!" << endl;
+                return -1;
+            }
             unique_ptr<PreparedStatement> stmt{ conn->prepareStatement("SELECT user_status FROM User WHERE login_id = ?") };
             stmt->setString(1, login_id);
             unique_ptr<ResultSet> res{stmt->executeQuery()};
