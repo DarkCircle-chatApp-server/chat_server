@@ -1,26 +1,106 @@
-#include "httplib.h"
+#include <sw/redis++/redis++.h>
+#include "DB.hpp"
 #include <iostream>
+#include "httplib.h"
+#include "chat_send.hpp"
+#include "chat_room.hpp"
+#include "chat_print.hpp"
+#include <windows.h>
 
-// Ã¤ÆÃ °ü·Ã ÇÔ¼ö
+using namespace std;
+using namespace sql;
+using json = nlohmann::json;
+// ì±„íŒ… ê´€ë ¨ í•¨ìˆ˜ 
 void handleChat(const httplib::Request& req, httplib::Response& res) {
-    
+
+    // ë‚´ë¶€ ë¡œì§ ê¸°ëŠ¥
+
     res.set_content("chat", "text/plain");
 }
 
 int main() {
-    httplib::Server svr;    // httplib::Server °´Ã¼ »ı¼º
+    //SetConsoleOutputCP(CP_UTF8);
+    httplib::Server svr;    // httplib::Server ê°ì²´ ìƒì„±
 
-    svr.Get("/chat", handleChat);
 
-    // CORS ¼³Á¤
-    svr.set_default_headers({
-        { "Access-Control-Allow-Origin", "*" },     // ¸ğµç µµ¸ŞÀÎ¿¡¼­ Á¢±Ù Çã¿ë
-        { "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE" },
-        { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
+
+    //MySQLConnector db(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
+    shared_ptr<sql::Connection> s_conn = mysql_db_conn();              // MySQL DBì—°ë™
+
+    R_Conn r_conn;
+    auto redis = make_shared<Redis>(r_conn.opts);
+
+    Chat_room user(redis);          // ì±„íŒ…ë°© ìƒì„± ë° ì…ì¥ í´ë˜ìŠ¤
+    Chat_send client(1, "", "", s_conn, redis);
+
+    //return 0;       // ì†Œë©¸ì í™•ì¸ìš©
+
+    svr.Options("/chat/room", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
         });
 
-    std::cout << "Chat Service ½ÇÇà Áß: http://localhost:5003" << std::endl;
-    svr.listen("0.0.0.0", 5003); // ¼­¹ö ½ÇÇà
+    svr.Options("/chat/sse", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+        });
 
-    // return 0; ÇÏ¸é ¾È µÊ, ¼­¹ö´Â Á¾·áµÉ ¶§±îÁö °è¼Ó ½ÇÇàµÇ¾î¾ß ÇÔ
+    // ì±„íŒ… ì…ë ¥ ë° ì±„íŒ… ê°’ ë°”ë¡œ redisì— ì €ì¥
+    svr.Post("/chat/room", [&](const httplib::Request& req, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        //res.set_header("Access-Control-Allow-Origin", "*");
+        std::cout << "/chat/room ìš”ì²­ ë°›ìŒ" << std::endl;
+        std::cout << u8"ìš”ì²­ ë‚´ìš©: " << req.body << std::endl;
+        user.ch_talk(req, res);
+        client.insert_chat(req, res);
+        });
+
+    // redisì— ì €ì¥ëœ ë°ì´í„° mysqlì— ì €ì¥
+    svr.Post("/chat/room/mysql", [&](const httplib::Request& req, httplib::Response& res) {
+
+        cout << "insert_chat_mysql" << endl;
+        client.insert_chat_mysql();
+
+        });
+
+    Message select(s_conn);  // GET ìš”ì²­ ì²˜ë¦¬
+    svr.Get("/chat/messages", [&](const httplib::Request& req, httplib::Response& res) {
+        select.handleMessages(req, res);
+        });
+
+    // subsriber ì„œë²„ <-> sse
+    svr.Get("/chat/sse", [&](const httplib::Request& req, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Content-Type", "text/event-stream");
+        res.set_header("Cache-Control", "no-cache");
+        res.set_header("Connection", "keep-alive");
+        std::cout << "subscribe channel opened" << endl;
+        user.sse_handler(req, res);
+        });
+
+    //svr.Get("/chat", handleChat);
+
+    //svr.Post("/chat", [&](const httplib::Request& req, httplib::Response& res) {        // json ìš”ì²­ë°›ê¸° ìœ„í•´ chat_insert()í•¨ìˆ˜ ì—°ë™
+    //    test.insert_chat(req, res);
+    //    });
+
+    // CORS ì„¤ì •
+    //svr.set_default_headers({
+    //    { "Access-Control-Allow-Origin", "*" },     // ëª¨ë“  ë„ë©”ì¸ì—ì„œ ì ‘ê·¼ í—ˆìš©
+    //    { "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE" },
+    //    { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
+    //    });
+
+
+    std::cout << u8"Chat Service ì‹¤í–‰ ì¤‘: http://localhost:8881" << std::endl;
+    svr.listen("0.0.0.0", 8881); // ì„œë²„ ì‹¤í–‰
+
+
+    // return 0; í•˜ë©´ ì•ˆ ë¨, ì„œë²„ëŠ” ì¢…ë£Œë  ë•Œê¹Œì§€ ê³„ì† ì‹¤í–‰ë˜ì–´ì•¼ í•¨
 }

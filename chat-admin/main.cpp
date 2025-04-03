@@ -1,26 +1,80 @@
 #include "httplib.h"
 #include <iostream>
+#include"DB_admin.hpp"
+#include "chat_ban.hpp"
+#include "admin_select_delete.hpp"
+#include "change_pw.hpp"
 
-// Ã¤ÆÃ °ü¸®ÀÚ ±â´É ÇÔ¼ö
-void handleChatAdmin(const httplib::Request& req, httplib::Response& res) {
-
-    res.set_content("chat admin", "text/plain"); // ¼º°ø ÀÀ´ä
-}
+// ì±„íŒ… ê´€ë¦¬ì ê¸°ëŠ¥ í•¨ìˆ˜
+//void handle_chat_admin(const httplib::Request& req, httplib::Response& res) {
+//
+//    res.set_content("chat admin", "text/plain"); // ì„±ê³µ ì‘ë‹µ
+//}
 
 int main() {
-    httplib::Server svr;    // httplib::Server °´Ã¼ »ı¼º
+    SetConsoleOutputCP(CP_UTF8);
+    MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
+    
+    httplib::Server svr;                                                                    // httplib::Server ê°ì²´ ìƒì„±
 
-    svr.Get("/chat/admin", handleChatAdmin);
+    
 
-    // CORS ¼³Á¤
+    Select_delete admin_select(db.getConnection());                                               // íšŒì› ì¡°íšŒ GET ìš”ì²­ ì²˜ë¦¬
+    svr.Get("/chat/admin/admin_select", [&](const httplib::Request& req, httplib::Response& res) {
+        admin_select.handle_admin_select(req, res);
+        });
+
+    Select_delete user_select(db.getConnection());                                               // ê°œì¸ ì¡°íšŒ POST ìš”ì²­ ì²˜ë¦¬
+                                                                                                 // ì…ë ¥ë°›ì„ bodyê°€ ìˆì–´ì•¼ë˜ì„œ post ì‚¬ìš©í•¨
+    svr.Post("/chat/admin/user_select", [&](const httplib::Request& req, httplib::Response& res) {
+		cout << "user_select" << endl;
+        user_select.handle_user_select(req, res);
+        });
+
+
+    Select_delete user_delete(db.getConnection());                                          // ìœ ì € ì‚­ì œ
+    svr.Put("/chat/admin/user_delete", [&](const httplib::Request& req, httplib::Response& res) {
+        user_delete.handle_admin_user_delete(req, res);
+        });
+
+    Select_delete message_delete(db.getConnection());                                       // ë©”ì„¸ì§€ ì‚­ì œ
+    svr.Put("/chat/admin/message_delete", [&](const httplib::Request& req, httplib::Response& res) {
+        message_delete.handle_amdim_message_delete(req, res);
+        });
+
+    Select_delete admin_status(db.getConnection());                                                // ê´€ë¦¬ì ê¶Œí•œ ë¶€ì—¬
+    svr.Put("/chat/admin/status_update", [&](const httplib::Request& req, httplib::Response& res) {
+        admin_status.handle_admin_status(req, res);
+        });
+
+    User_ban user_ban(db.getConnection());                                                  // ë°´ ì²˜ë¦¬
+    svr.Put("/chat/admin/ban", [&](const httplib::Request& req, httplib::Response& res) {
+        user_ban.handle_user_ban(req, res);
+        });
+
+    
+    User_ban user_unban(db.getConnection());                                                // ë°´í•´ì œ ì²˜ë¦¬
+    svr.Put("/chat/admin/unban", [&](const httplib::Request& req, httplib::Response& res) {
+        user_unban.handle_user_unban(req, res);
+        });
+
+
+    Change_PW change_pw(db.getConnection());                                                // ë¹„ë°€ë²ˆí˜¸ ë³€ê²½
+    svr.Put("/chat/admin/change_pw", [&](const httplib::Request& req, httplib::Response& res) {
+        change_pw.handle_Change_PW(req, res);
+        });
+
+
+    // CORS ì„¤ì •
     svr.set_default_headers({
-        { "Access-Control-Allow-Origin", "*" },     // ¸ğµç µµ¸ŞÀÎ¿¡¼­ Á¢±Ù Çã¿ë
+        { "Access-Control-Allow-Origin", "*" },                                             // ëª¨ë“  ë„ë©”ì¸ì—ì„œ ì ‘ê·¼ í—ˆìš©
         { "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE" },
         { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
         });
 
-    std::cout << "Chat Service ½ÇÇà Áß: http://localhost:5004" << std::endl;
-    svr.listen("0.0.0.0", 5004); // ¼­¹ö ½ÇÇà
+    std::cout << "Chat Service running: http://localhost:8882" << std::endl;
+    svr.listen("0.0.0.0", 8882); // ì„œë²„ ì‹¤í–‰
+    
 
-    // return 0; ÇÏ¸é ¾È µÊ, ¼­¹ö´Â Á¾·áµÉ ¶§±îÁö °è¼Ó ½ÇÇàµÇ¾î¾ß ÇÔ
+    // return 0; í•˜ë©´ ì•ˆ ë¨, ì„œë²„ëŠ” ì¢…ë£Œë  ë•Œê¹Œì§€ ê³„ì† ì‹¤í–‰ë˜ì–´ì•¼ í•¨
 }
