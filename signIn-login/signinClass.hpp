@@ -374,6 +374,7 @@ public:
 
             string login_id = req_json["login_id"];
             string login_pw = req_json["login_pw"];
+			int user_id = get_key(login_id);
 
             if (check_data(login_id, login_pw)) {
                 cout << "login success" << endl;
@@ -381,7 +382,7 @@ public:
                 string token = create_jwt(login_id);
 
                 // 로그인 성공하면 클라이언트에 jwt 토큰 반환
-                json response = { {"message", "login success"}, {"token", token}, {"login_id", login_id} };
+                json response = { {"message", "login success"}, {"token", token}, {"login_id", login_id}, {"user_id", user_id}};
                 // 응답 반환
                 res.set_content(response.dump(), "application/json");
             }

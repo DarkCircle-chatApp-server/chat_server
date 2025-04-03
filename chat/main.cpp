@@ -1,3 +1,4 @@
+#include <sw/redis++/redis++.h>
 #include "DB.hpp"
 #include <iostream>
 #include "httplib.h"
@@ -6,6 +7,7 @@
 #include "chat_print.hpp"
 #include <windows.h>
 
+using namespace std;
 using namespace sql;
 using json = nlohmann::json;
 // 채팅 관련 함수 
@@ -33,8 +35,28 @@ int main() {
 
     //return 0;       // 소멸자 확인용
 
+    svr.Options("/chat/room", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+        });
+
+    svr.Options("/chat/sse", [](const httplib::Request& req, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+        });
+
     // 채팅 입력 및 채팅 값 바로 redis에 저장
     svr.Post("/chat/room", [&](const httplib::Request& req, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        //res.set_header("Access-Control-Allow-Origin", "*");
+        std::cout << "/chat/room 요청 받음" << std::endl;
+        std::cout << u8"요청 내용: " << req.body << std::endl;
         user.ch_talk(req, res);
         client.insert_chat(req, res);
         });
@@ -52,6 +74,16 @@ int main() {
         select.handleMessages(req, res);
         });
 
+    // subsriber 서버 <-> sse
+    svr.Get("/chat/sse", [&](const httplib::Request& req, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Content-Type", "text/event-stream");
+        res.set_header("Cache-Control", "no-cache");
+        res.set_header("Connection", "keep-alive");
+        std::cout << "subscribe channel opened" << endl;
+        user.sse_handler(req, res);
+        });
+
     //svr.Get("/chat", handleChat);
 
     //svr.Post("/chat", [&](const httplib::Request& req, httplib::Response& res) {        // json 요청받기 위해 chat_insert()함수 연동
@@ -59,14 +91,16 @@ int main() {
     //    });
 
     // CORS 설정
-    svr.set_default_headers({
-        { "Access-Control-Allow-Origin", "*" },     // 모든 도메인에서 접근 허용
-        { "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE" },
-        { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
-        });
+    //svr.set_default_headers({
+    //    { "Access-Control-Allow-Origin", "*" },     // 모든 도메인에서 접근 허용
+    //    { "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE" },
+    //    { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
+    //    });
 
-    std::cout << u8"Chat Service running: http://localhost:5003" << std::endl;
-    svr.listen("0.0.0.0", 5003); // 서버 실행
+
+    std::cout << u8"Chat Service 실행 중: http://localhost:8881" << std::endl;
+    svr.listen("0.0.0.0", 8881); // 서버 실행
+
 
     // return 0; 하면 안 됨, 서버는 종료될 때까지 계속 실행되어야 함
 }

@@ -138,7 +138,7 @@ public:
 		if (user_id == 1) insert_chat_mysql();			// 관리자가 프로그램을 정상 종료해야 저장됨 (관리자 id db에 저장안되있어서 일부러 1로함)
 	}
 
-	void insert_chat(const httplib::Request& req, httplib::Response& res) {		// 채팅 저장 함수
+	void insert_chat(const httplib::Request& req, httplib::Response& res) {
 		stat_check();		// 차단 됐는지 확인 후 값이 변경 됐으면 변경
 		json req_json = json::parse(req.body);
 
@@ -149,9 +149,12 @@ public:
 			current_date();		// 채팅 입력 후 바로 시간 입력받기
 
 			insert_chat_redis();		// 입력받은 채팅 redis로 저장
+			std::cout << "Chat Inserted into Redis: " << msg_text << std::endl;
+			//res.set_content(R"({"status": "ok", "message": "Chat saved"})", "application/json");
 		}
 		else {
 			cout << "차단 상태" << endl;
+			res.set_content(R"({"status": "blocked", "message": "User is blocked"})", "application/json");
 		}
 	}
 

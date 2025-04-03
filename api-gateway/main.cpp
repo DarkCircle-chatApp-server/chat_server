@@ -13,7 +13,7 @@ void routing_login(const httplib::Request& req, httplib::Response& res) {
     /*res.set_header("Access-Control-Allow-Origin", "*");
     res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
     res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");*/
-    httplib::Client cli("http://localhost:5001");
+    httplib::Client cli("http://localhost:8880");
     auto response = cli.Post("/login", req.body, "application/json");
     if (response) {
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -29,7 +29,7 @@ void routing_login(const httplib::Request& req, httplib::Response& res) {
 
 // test2 → 5001번 포트의 signIn 호출
 void routing_signup(const httplib::Request& req, httplib::Response& res) {
-    httplib::Client cli("http://localhost:5001");
+    httplib::Client cli("http://localhost:8880");
     auto response = cli.Post("/signIn", req.body, "application/json");
     if (response) {
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -46,7 +46,7 @@ void routing_signup(const httplib::Request& req, httplib::Response& res) {
 
 // test3 → 5001번 포트의 idCheck 호출
 void routing_check(const httplib::Request& req, httplib::Response& res) {
-    httplib::Client cli("http://localhost:5001");
+    httplib::Client cli("http://localhost:8880");
     auto response = cli.Post("/idCheck", req.body, "application/json");
     if (response) {
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -69,7 +69,7 @@ void routing_statCheck(const httplib::Request& req, httplib::Response& res) {
         return;
     }
     std::string login_id = req.path_params.at("login_id");
-    httplib::Client cli("http://localhost:5001");
+    httplib::Client cli("http://localhost:8880");
     std::string url = "/statCheck/" + login_id;
     auto response = cli.Get(url.c_str());
     if (response) {
@@ -90,7 +90,7 @@ void routing_getName(const httplib::Request& req, httplib::Response& res) {
         return;
     }
     std::string login_id = req.path_params.at("login_id");
-    httplib::Client cli("http://localhost:5001");
+    httplib::Client cli("http://localhost:8880");
     std::string url = "/getName/" + login_id;
     auto response = cli.Get(url.c_str());
     if (response) {
@@ -111,7 +111,7 @@ void routing_showId(const httplib::Request& req, httplib::Response& res) {
         return;
     }
     std::string login_id = req.path_params.at("login_id");
-    httplib::Client cli("http://localhost:5001");
+    httplib::Client cli("http://localhost:8880");
     std::string url = "/showId/" + login_id;
     auto response = cli.Get(url.c_str());
     if (response) {
@@ -126,7 +126,7 @@ void routing_showId(const httplib::Request& req, httplib::Response& res) {
 }
 
 void routing_ban(const httplib::Request& req, httplib::Response& res) {
-    httplib::Client cli("http://localhost:5004");
+    httplib::Client cli("http://localhost:8882");
     auto response = cli.Put("/chat/admin/ban", req.body, "application/json");
     if (response) {
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -142,7 +142,7 @@ void routing_ban(const httplib::Request& req, httplib::Response& res) {
 }
 
 void routing_showUsers(const httplib::Request& req, httplib::Response& res) {
-    httplib::Client cli("http://localhost:5004");
+    httplib::Client cli("http://localhost:8882");
     std::string url = "/chat/admin/admin_select";
     auto response = cli.Get(url.c_str());
     if (response) {
@@ -157,7 +157,7 @@ void routing_showUsers(const httplib::Request& req, httplib::Response& res) {
 }
 
 void routing_adminBan(const httplib::Request& req, httplib::Response& res) {
-    httplib::Client cli("http://localhost:5004");
+    httplib::Client cli("http://localhost:8882");
     auto response = cli.Put("/chat/admin/user_delete", req.body, "application/json");
     if (response) {
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -173,7 +173,7 @@ void routing_adminBan(const httplib::Request& req, httplib::Response& res) {
 }
 
 void routing_adminUnban(const httplib::Request& req, httplib::Response& res) {
-    httplib::Client cli("http://localhost:5004");
+    httplib::Client cli("http://localhost:8882");
     auto response = cli.Put("/chat/admin/unban", req.body, "application/json");
     if (response) {
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -189,7 +189,7 @@ void routing_adminUnban(const httplib::Request& req, httplib::Response& res) {
 }
 
 void routing_setAdmin(const httplib::Request& req, httplib::Response& res) {
-    httplib::Client cli("http://localhost:5004");
+    httplib::Client cli("http://localhost:8882");
     auto response = cli.Put("/chat/admin/status_update", req.body, "application/json");
     if (response) {
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -205,7 +205,7 @@ void routing_setAdmin(const httplib::Request& req, httplib::Response& res) {
 }
 
 void routing_admin_select(const httplib::Request& req, httplib::Response& res) {
-    httplib::Client cli("http://localhost:5004");
+    httplib::Client cli("http://localhost:8882");
     auto response = cli.Post("/chat/admin/user_select", req.body, "application/json");
     if (response) {
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -217,6 +217,26 @@ void routing_admin_select(const httplib::Request& req, httplib::Response& res) {
         res.status = 500; // 서버 오류 응답
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content("Error fetching data from /signIn", "text/plain");
+    }
+}
+
+// 5003포트 채팅 전송
+void routing_send_chat(const httplib::Request& req, httplib::Response& res) {
+    /*res.set_header("Access-Control-Allow-Origin", "*");
+    res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");*/
+    httplib::Client cli("http://localhost:8881");
+    auto response = cli.Post("/chat/room", req.body, "application/json");
+    if (response) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.status = response->status;
+        std::cout << "Backend response: " << response->body << std::endl;
+        res.set_content(response->body, response->get_header_value("Content-Type"));
+    }
+    else {
+        res.status = 500; // 서버 오류 응답
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_content("Error fetching data from /login", "text/plain");
     }
 }
 
@@ -307,6 +327,13 @@ int main() {
         res.status = 204;
         });
 
+    svr.Options("/chat/room", [](const httplib::Request&, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+        });
+
     // "/" 경로에 대해 handleRoot 함수 연결
     svr.Get("/", handleRoot);
 
@@ -338,11 +365,7 @@ int main() {
 
     svr.Post("/chat/admin/user_select", routing_admin_select);
 
-
-
-
-
-
+    svr.Post("/chat/room", routing_send_chat);
 
     // CORS 설정
     //svr.set_default_headers({
