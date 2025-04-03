@@ -72,8 +72,8 @@ int main() {
         { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
         });
 
-    std::cout << "Chat Service running: http://localhost:5004" << std::endl;
-    svr.listen("0.0.0.0", 5004); // 서버 실행
+    std::cout << "Chat Service running: http://localhost:8882" << std::endl;
+    svr.listen("0.0.0.0", 8882); // 서버 실행
     
 
     // return 0; 하면 안 됨, 서버는 종료될 때까지 계속 실행되어야 함

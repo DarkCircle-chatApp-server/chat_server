@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:latest       # Redis 버전 설정 latest는 최신버전
+    container_name: chat      # 컨테이너 이름설정
+    restart: always
+    ports:
+      - "6379:6379"       # 외부에서도 접근 가능하도록 포트 매핑
+    volumes:
+      - redis_data:/data
+      - ./redis.conf:/usr/local/etc/redis/redis.conf
+    command: ["redis-server", "/usr/local/etc/redis/redis.conf"]
+    networks:
+      - redis_net
+    environment:
+      - REDIS_PASSWORD=admin1234    # 보안 강화를 위한 비밀번호 설정 - redis.conf의 비밀번호설정이랑 일치
+
+volumes:
+  redis_data:
+
+networks:
+  redis_net:
+    driver: bridge

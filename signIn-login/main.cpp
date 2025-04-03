@@ -114,9 +114,9 @@ int main() {
         });
 
     // 5001번 포트로 들어오는 클라이언트 요청 받음
-    std::cout << "Login Service running: http://localhost:5001" << std::endl;
-    std::cout << "SignIn Service running: http://localhost:5001" << std::endl;
-    svr.listen("0.0.0.0", 5001);
+    std::cout << "Login Service running: http://localhost:8880" << std::endl;
+    std::cout << "SignIn Service running: http://localhost:8880" << std::endl;
+    svr.listen("0.0.0.0", 8880);
 
     //svr.listen("0.0.0.0", 5002);
 
