@@ -1,11 +1,11 @@
 #include <sw/redis++/redis++.h>
 #include "DB.hpp"
-
 #include <iostream>
 #include "httplib.h"
 #include "chat_send.hpp"
 #include "chat_room.hpp"
 #include "chat_print.hpp"
+#include <windows.h>
 
 using namespace std;
 using namespace sql;
@@ -19,22 +19,21 @@ void handleChat(const httplib::Request& req, httplib::Response& res) {
 }
 
 int main() {
-    SetConsoleOutputCP(CP_UTF8);
+    //SetConsoleOutputCP(CP_UTF8);
     httplib::Server svr;    // httplib::Server 객체 생성
 
-    MySQLConnector db(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
-    sql::Connection* s_conn = mysql_db_conn();              // MySQL DB연동
 
+
+    //MySQLConnector db(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
+    shared_ptr<sql::Connection> s_conn = mysql_db_conn();              // MySQL DB연동
 
     R_Conn r_conn;
     auto redis = make_shared<Redis>(r_conn.opts);
 
-    Chat_room user(redis);
+    Chat_room user(redis);          // 채팅방 생성 및 입장 클래스
     Chat_send client(1, "", "", s_conn, redis);
 
-    // 채팅방 입장(실행)
-    thread room(&Chat_room::ch_room, &user);
-    room.detach();
+    //return 0;       // 소멸자 확인용
 
     svr.Options("/chat/room", [](const httplib::Request& req, httplib::Response& res) {
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -64,11 +63,13 @@ int main() {
 
     // redis에 저장된 데이터 mysql에 저장
     svr.Post("/chat/room/mysql", [&](const httplib::Request& req, httplib::Response& res) {
+
         cout << "insert_chat_mysql" << endl;
-        client.insert_chat_mysql(req, res);
+        client.insert_chat_mysql();
+
         });
 
-    Message select(db.getConnection());  // GET 요청 처리
+    Message select(s_conn);  // GET 요청 처리
     svr.Get("/chat/messages", [&](const httplib::Request& req, httplib::Response& res) {
         select.handleMessages(req, res);
         });
@@ -96,8 +97,10 @@ int main() {
     //    { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
     //    });
 
+
     std::cout << u8"Chat Service 실행 중: http://localhost:8881" << std::endl;
     svr.listen("0.0.0.0", 8881); // 서버 실행
+
 
     // return 0; 하면 안 됨, 서버는 종료될 때까지 계속 실행되어야 함
 }
