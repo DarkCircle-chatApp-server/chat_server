@@ -25,9 +25,6 @@ int main() {
     //MySQLConnector db(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
     shared_ptr<sql::Connection> s_conn = mysql_db_conn();              // MySQL DB연동
 
-
-
-
     R_Conn r_conn;
     auto redis = make_shared<Redis>(r_conn.opts);
 
