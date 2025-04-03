@@ -20,8 +20,12 @@ int main() {
     //SetConsoleOutputCP(CP_UTF8);
     httplib::Server svr;    // httplib::Server 객체 생성
 
-    MySQLConnector db(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
+
+
+    //MySQLConnector db(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
     shared_ptr<sql::Connection> s_conn = mysql_db_conn();              // MySQL DB연동
+
+
 
 
     R_Conn r_conn;
@@ -40,10 +44,13 @@ int main() {
 
     // redis에 저장된 데이터 mysql에 저장
     svr.Post("/chat/room/mysql", [&](const httplib::Request& req, httplib::Response& res) {
-        //client.insert_chat_mysql(req, res);
+
+        cout << "insert_chat_mysql" << endl;
+        client.insert_chat_mysql();
+
         });
 
-    Message select(db.getConnection());  // GET 요청 처리
+    Message select(s_conn);  // GET 요청 처리
     svr.Get("/chat/messages", [&](const httplib::Request& req, httplib::Response& res) {
         select.handleMessages(req, res);
         });

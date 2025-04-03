@@ -21,6 +21,10 @@ protected:
 	int check_s_data = 1;				// 처음 s_data_num 값
 	int s_data_num = 1;					// MySQL로 넘겨줄 데이터 수
 
+	int r_data_num = 1;					// Redis에서 sql로 데이터를 넣은 후 Redis에 지워야 할 데이터 수
+	int check_s_data = 1;				// 처음 s_data_num 값
+	int s_data_num = 1;					// MySQL로 넘겨줄 데이터 수
+
 	string msg_text;		// 메시지 내용
 	string msg_time;		// 타임 로그
 
@@ -125,7 +129,7 @@ public:
 	Chat_send(int _user_id, const char* _msg_text, const char* _msg_time, shared_ptr<sql::Connection> _m_conn, shared_ptr<Redis> _redis)
 		: user_id(_user_id), msg_text(_msg_text), msg_time(_msg_time), m_conn(move(_m_conn)), redis(_redis) {
 		stat_check();		// 객체 생성 시 유저 상태 확인
-		
+
 		if (user_id == 1) {			// 계정이 관리자 일 때 실행	(관리자 id db에 저장 안되있어서 1로 함 나중에 수정)
 			thread auto_save([&]() {		// auto save 스레드 생성
 				auto_save_mysql();
@@ -221,7 +225,7 @@ public:
 					s_data_num = check_s_data;	// 데이터 저장 전으로 돌아감
 					redis_to_mysql[0] = "";		// redis에서 꺼낸 값 초기화
 					m_conn->rollback();			// 트랜잭션 롤백
-					
+
 					return;				// 쿼리 실패 = 함수 탈출
 				}
 
