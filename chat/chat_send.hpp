@@ -10,7 +10,7 @@ using json = nlohmann::json;
 static int room_msg_num = 1;			// 채팅방 채팅 번호(갯수)
 
 class Chat_send {
-protected:
+private:
 	const int user_id = 0;				// 유저 id 상수화 선언 (객체 생성시 고정 아이디 값)
 	int local_msg_id = 1;				// redis에 저장하기 직전 입력받은 채팅의 번호
 
@@ -83,6 +83,24 @@ protected:
 		}
 	}
 
+	void insert_chat_redis() {		// 입력받은 채팅 redis로 저장하는 함수
+		lock_guard<mutex> lock(redis_mtx);
+		try {
+			local_msg_id = room_msg_num;	// 현재 채팅 내역을 local_msg_id에 저장하면서 전역 변수 값 +1
+
+			string ins_m_id_redis = "msg_id:" + to_string(local_msg_id);		// msg_id 동적으로 입력받기
+			string r_msg_id = to_string(user_id);
+
+			unordered_map<string, string> cols = { {"user_id", r_msg_id}, {"msg_text", msg_text}, {"msg_time", msg_time} };
+			redis->hmset(ins_m_id_redis, cols.begin(), cols.end());
+
+			room_msg_num++;					// 성공하면 +1
+		}
+		catch (const Error& e) {
+			cerr << "Redis 연결 오류: " << e.what() << endl;
+		}
+	}
+
 	bool del_chat_redis() {				// redis 데이터 삭제 함수
 		if (r_del_num == 1 && s_data_num == 1) return false;		// 첫 실행 시 스킵
 
@@ -128,70 +146,6 @@ protected:
 		}
 	}
 
-public:
-	Chat_send(int _user_id, const char* _msg_text, const char* _msg_time, unique_ptr<sql::Connection> _m_conn, unique_ptr<Redis> _redis)
-		: user_id(_user_id), msg_text(_msg_text), msg_time(_msg_time), m_conn(move(_m_conn)), redis(move(_redis)) {
-		stat_check();		// 객체 생성 시 유저 상태 확인
-
-		if (user_id == 0) {			// 계정이 관리자 일 때 실행	(관리자 id db에 저장 안되있어서 1로 함 나중에 수정)
-			//thread auto_save([self = this]() {		// auto save 스레드 생성
-			//	self->auto_save_mysql();
-			//	});
-			//auto_save.detach();			// auto_save_mysql 함수 스레드 분리
-			cout << "관리자 접속 - autosave 스레드 생략" << endl;
-			running = true;
-			if (!m_conn) {
-				cerr << "chat_send DB 연결 null" << endl;
-				throw runtime_error("db연결 실패");
-			}
-			auto_save_thr = thread([this]() {auto_save_mysql(); });
-		}
-	}
-	~Chat_send() {
-		if (user_id == 0) insert_chat_mysql();			// 관리자가 프로그램을 정상 종료해야 저장됨 (관리자 id db에 저장안되있어서 일부러 1로함)
-		running = false;
-		if (auto_save_thr.joinable()) auto_save_thr.join();
-	}
-
-	void insert_chat(const httplib::Request& req, httplib::Response& res) {
-		lock_guard<mutex> lock(mysql_mtx);
-		stat_check();		// 차단 됐는지 확인 후 값이 변경 됐으면 변경
-		json req_json = json::parse(req.body);
-
-		if (user_status != 3) {			// 임시 차단이 아니면 아래 코드 실행
-			//cout << "채팅 입력 ";
-			//getline(cin, msg_text);		// 채팅 입력 받기
-			msg_text = req_json["msg_text"];
-			current_date();		// 채팅 입력 후 바로 시간 입력받기
-
-			insert_chat_redis();		// 입력받은 채팅 redis로 저장
-			std::cout << "Chat Inserted into Redis: " << msg_text << std::endl;
-			//res.set_content(R"({"status": "ok", "message": "Chat saved"})", "application/json");
-		}
-		else {
-			cout << "차단 상태" << endl;
-			res.set_content(R"({"status": "blocked", "message": "User is blocked"})", "application/json");
-		}
-	}
-
-	void insert_chat_redis() {		// 입력받은 채팅 redis로 저장하는 함수
-		lock_guard<mutex> lock(redis_mtx);
-		try {
-			local_msg_id = room_msg_num;	// 현재 채팅 내역을 local_msg_id에 저장하면서 전역 변수 값 +1
-
-			string ins_m_id_redis = "msg_id:" + to_string(local_msg_id);		// msg_id 동적으로 입력받기
-			string r_msg_id = to_string(user_id);
-
-			unordered_map<string, string> cols = { {"user_id", r_msg_id}, {"msg_text", msg_text}, {"msg_time", msg_time} };
-			redis->hmset(ins_m_id_redis, cols.begin(), cols.end());
-
-			room_msg_num++;					// 성공하면 +1
-		}
-		catch (const Error& e) {
-			cerr << "Redis 연결 오류: " << e.what() << endl;
-		}
-	}
-
 	void auto_save_mysql() {			// 자동 저장 함수
 		while (running) {
 			try {
@@ -209,7 +163,6 @@ public:
 	}
 
 	void insert_chat_mysql() {			// Redis에 담은 채팅 데이터 MySQL로 이동
-		//json req_json = json::parse(req.body);
 		if (!m_conn) {
 			cerr << "insert_chat_mysql: m_conn nullptr" << endl;
 			return;
@@ -268,5 +221,46 @@ public:
 		del_chat_redis();			// mysql 데이터 성공적으로 넣으면 redis 데이터 삭제
 	}
 
-	int get_user_id() const { return user_id; }
+public:
+	Chat_send(int _user_id, const char* _msg_text, const char* _msg_time, unique_ptr<sql::Connection> _m_conn, unique_ptr<Redis> _redis)
+		: user_id(_user_id), msg_text(_msg_text), msg_time(_msg_time), m_conn(move(_m_conn)), redis(move(_redis)) {
+		stat_check();		// 객체 생성 시 유저 상태 확인
+		this_thread::sleep_for(chrono::milliseconds(500));			// 유저 상태값 확인 후 잠시 대기
+
+		if (user_status == 0) {			// 계정이 관리자 일 때 실행
+			cout << "관리자 접속 - autosave 스레드 생략" << endl;
+			running = true;
+			if (!m_conn) {
+				cerr << "chat_send DB 연결 null" << endl;
+				throw runtime_error("db연결 실패");
+			}
+			auto_save_thr = thread([this]() {auto_save_mysql(); });
+		}
+	}
+	~Chat_send() {
+		if (user_status == 0) insert_chat_mysql();			// 관리자가 프로그램을 정상 종료해야 저장됨
+		running = false;
+		if (auto_save_thr.joinable()) auto_save_thr.join();
+	}
+
+	void insert_chat(const httplib::Request& req, httplib::Response& res) {
+		lock_guard<mutex> lock(mysql_mtx);
+		stat_check();		// 차단 됐는지 확인 후 값이 변경 됐으면 변경
+		json req_json = json::parse(req.body);
+
+		if (user_status != 3) {			// 임시 차단이 아니면 아래 코드 실행
+			//cout << "채팅 입력 ";
+			//getline(cin, msg_text);		// 채팅 입력 받기
+			msg_text = req_json["msg_text"];
+			current_date();		// 채팅 입력 후 바로 시간 입력받기
+
+			insert_chat_redis();		// 입력받은 채팅 redis로 저장
+			std::cout << "Chat Inserted into Redis: " << msg_text << std::endl;
+			//res.set_content(R"({"status": "ok", "message": "Chat saved"})", "application/json");
+		}
+		else {
+			cout << "차단 상태" << endl;
+			res.set_content(R"({"status": "blocked", "message": "User is blocked"})", "application/json");
+		}
+	}
 };
