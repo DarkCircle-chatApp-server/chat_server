@@ -42,10 +42,16 @@ int main() {
         client.insert_chat(req, res);
         });
 
+<<<<<<< Updated upstream
     // redis에 저장된 데이터 mysql에 저장
     svr.Post("/chat/room/mysql", [&](const httplib::Request& req, httplib::Response& res) {
         cout << "insert_chat_mysql" << endl;
         client.insert_chat_mysql();
+=======
+    Message select(s_conn);  // GET 요청 처리
+    svr.Get("/chat/messages", [&](const httplib::Request& req, httplib::Response& res) {
+        select.handleMessages(req, res);
+>>>>>>> Stashed changes
         });
 
     Message select(s_conn);  // GET 요청 처리
