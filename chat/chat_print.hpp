@@ -2,18 +2,18 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <windows.h> // ÇÑ±Û±úÁü ¹æÁö
-#include "DB.hpp"  // MySQLConnector Å¬·¡½º¸¦ Æ÷ÇÔÇÏ´Â Çì´õ
+#include <windows.h> // í•œê¸€ê¹¨ì§ ë°©ì§€
+#include "DB.hpp"  // MySQLConnector í´ë˜ìŠ¤ë¥¼ í¬í•¨í•˜ëŠ” í—¤ë”
 #include "httplib.h"
 #include "json.hpp"
 #include <sstream>
- 
+
 using namespace std;
 using json = nlohmann::json;
 
 class Message {
 private:
-    unique_ptr< sql::Connection> conn; // MySQL ¿¬°á °´Ã¼
+    unique_ptr< sql::Connection> conn; // MySQL ì—°ê²° ê°ì²´
 
 public:
     Message(unique_ptr<sql::Connection> _conn) : conn(move(_conn)) {
@@ -23,17 +23,17 @@ public:
     }
     ~Message() {}
 
-    // GET ¿äÃ»À» Ã³¸®ÇÏ¿© JSON ÀÀ´ä ¹İÈ¯
+    // GET ìš”ì²­ì„ ì²˜ë¦¬í•˜ì—¬ JSON ì‘ë‹µ ë°˜í™˜
     void handleMessages(const httplib::Request& req, httplib::Response& res) {
         try {
-            json messages = print_MessageJson();  // ¸Ş½ÃÁö µ¥ÀÌÅÍ Á¶È¸
-            res.set_content(messages.dump(), "application/json");  // JSON ÀÀ´ä ¹İÈ¯
+            json messages = print_MessageJson();  // ë©”ì‹œì§€ ë°ì´í„° ì¡°íšŒ
+            res.set_content(messages.dump(), "application/json");  // JSON ì‘ë‹µ ë°˜í™˜
         }
         catch (const SQLException& e) {
             cout << "Query failed: " << e.what() << endl;
         }
     }
-    // ¸Ş½ÃÁö °³¼ö ¹İÈ¯
+    // ë©”ì‹œì§€ ê°œìˆ˜ ë°˜í™˜
     int countMessages() {
         int count = 0;
         try {
@@ -51,18 +51,18 @@ public:
         return count;
     }
 
-    //¿©°¡ 15°³ Ãâ·ÂÇÏ´Â°Å 
+    //ì—¬ê°€ 15ê°œ ì¶œë ¥í•˜ëŠ”ê±° 
 
     json print_MessageJson() {
-        json result_json = json::array(); // JSON ¹è¿­ »ı¼º
-        int totalMessages = countMessages(); // ÃÑ ¸Ş½ÃÁö °³¼ö °¡Á®¿À±â
+        json result_json = json::array(); // JSON ë°°ì—´ ìƒì„±
+        int totalMessages = countMessages(); // ì´ ë©”ì‹œì§€ ê°œìˆ˜ ê°€ì ¸ì˜¤ê¸°
 
         if (totalMessages == 0) {
             cout << "No messages found in the database." << endl;
             return result_json;
         }
-        // SQL°ú RÀ» ¿¬°èÇÏ¿© µ¥ÀÌÅÍ¸¦ Ã³¸®ÇÏ¸é ÅØ½ºÆ®.³¯Â¥/½Ã°£, ¼ıÀÚ °ªÀÌ Æ÷ÇÔµÈ ÀÏºÎ µ¥ÀÌÅÍ Ã³¸®°¡ °¡´ÉÇØ¼­ ³ÖÀ½ »©°í ÇØµµ ¹®Á¦´Â ¾øÀ½
-        try {                   
+        // SQLê³¼ Rì„ ì—°ê³„í•˜ì—¬ ë°ì´í„°ë¥¼ ì²˜ë¦¬í•˜ë©´ í…ìŠ¤íŠ¸.ë‚ ì§œ/ì‹œê°„, ìˆ«ì ê°’ì´ í¬í•¨ëœ ì¼ë¶€ ë°ì´í„° ì²˜ë¦¬ê°€ ê°€ëŠ¥í•´ì„œ ë„£ìŒ ë¹¼ê³  í•´ë„ ë¬¸ì œëŠ” ì—†ìŒ
+        try {
             string query = R"(                                                      
             SELECT m.msg_id, m.user_id, u.user_name, m.msg_text, m.msg_time 
             FROM Message m 
@@ -76,7 +76,7 @@ public:
 
             while (res->next()) {
                 json msg;
-                msg["msg_id"] = res->getInt("msg_id");  // msg_id Æ÷ÇÔ (Á¤·Ä¿ë)
+                msg["msg_id"] = res->getInt("msg_id");  // msg_id í¬í•¨ (ì •ë ¬ìš©)
                 msg["user_id"] = res->getInt("user_id");
                 msg["user_name"] = res->getString("user_name");
                 msg["msg_text"] = res->getString("msg_text");
@@ -85,16 +85,16 @@ public:
                 messages.push_back(msg);
             }
 
-            // ÃÖ½Å ¸Ş½ÃÁö 15°³ ³»¸²Â÷¼ø Á¤·Ä
+            // ìµœì‹  ë©”ì‹œì§€ 15ê°œ ë‚´ë¦¼ì°¨ìˆœ ì •ë ¬
             sort(messages.begin(), messages.end(), [](const json& a, const json& b) {
-                return a["msg_id"] > b["msg_id"]; // msg_id°¡ Å« ¼ø¼­´ë·Î Á¤·Ä (³»¸²Â÷¼ø)
+                return a["msg_id"] > b["msg_id"]; // msg_idê°€ í° ìˆœì„œëŒ€ë¡œ ì •ë ¬ (ë‚´ë¦¼ì°¨ìˆœ)
                 });
 
-            // ÃÖ½Å 15°³ ¸Ş½ÃÁö Ãß°¡ (msg_id Á¦°Å ÈÄ ÀúÀå)
+            // ìµœì‹  15ê°œ ë©”ì‹œì§€ ì¶”ê°€ (msg_id ì œê±° í›„ ì €ì¥)
             int firstBatch = min(15, static_cast<int>(messages.size()));
             for (int i = 0; i < firstBatch; ++i) {
-                messages[i].erase("msg_id");  // msg_id »èÁ¦
-                json ordered_msg;  // ¼ø¼­¸¦ ¸ÂÃá »õ·Î¿î JSON °´Ã¼
+                messages[i].erase("msg_id");  // msg_id ì‚­ì œ
+                json ordered_msg;  // ìˆœì„œë¥¼ ë§ì¶˜ ìƒˆë¡œìš´ JSON ê°ì²´
                 ordered_msg["user_id"] = messages[i]["user_id"];
                 ordered_msg["user_name"] = messages[i]["user_name"];
                 ordered_msg["msg_text"] = messages[i]["msg_text"];
@@ -103,15 +103,15 @@ public:
                 result_json.push_back(messages[i]);
             }
 
-            // ³²Àº ¸Ş½ÃÁö ¿À¸§Â÷¼ø Á¤·Ä
+            // ë‚¨ì€ ë©”ì‹œì§€ ì˜¤ë¦„ì°¨ìˆœ ì •ë ¬
             if (messages.size() > 15) {
                 sort(messages.begin() + 15, messages.end(), [](const json& a, const json& b) {
-                    return a["msg_id"] < b["msg_id"]; // msg_id°¡ ÀÛÀº ¼ø¼­´ë·Î Á¤·Ä (¿À¸§Â÷¼ø)
+                    return a["msg_id"] < b["msg_id"]; // msg_idê°€ ì‘ì€ ìˆœì„œëŒ€ë¡œ ì •ë ¬ (ì˜¤ë¦„ì°¨ìˆœ)
                     });
 
-                // ³²Àº ¸Ş½ÃÁö Ãß°¡ (msg_id Á¦°Å ÈÄ ÀúÀå)
+                // ë‚¨ì€ ë©”ì‹œì§€ ì¶”ê°€ (msg_id ì œê±° í›„ ì €ì¥)
                 for (size_t i = 15; i < messages.size(); ++i) {
-                    messages[i].erase("msg_id");  // msg_id »èÁ¦
+                    messages[i].erase("msg_id");  // msg_id ì‚­ì œ
                     json ordered_msg;
                     ordered_msg["user_id"] = messages[i]["user_id"];
                     ordered_msg["user_name"] = messages[i]["user_name"];
