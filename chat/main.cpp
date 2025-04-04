@@ -108,11 +108,13 @@ int main() {
         //client.insert_chat(req, res);
         });
 
+
     //Message select(s_conn);  // GET 요청 처리
     //svr.Get("/chat/messages", [&](const httplib::Request& req, httplib::Response& res) {
     //    select.handleMessa
     // ges(req, res);
     //    });
+
 
     // subsriber 서버 <-> sse
     svr.Get("/chat/sse", [&](const httplib::Request& req, httplib::Response& res) {

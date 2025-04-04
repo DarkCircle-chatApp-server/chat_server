@@ -13,10 +13,10 @@ using json = nlohmann::json;
 
 class Message {
 private:
-    shared_ptr< sql::Connection> conn; // MySQL ¿¬°á °´Ã¼
+    unique_ptr< sql::Connection> conn; // MySQL ¿¬°á °´Ã¼
 
 public:
-    Message(shared_ptr<sql::Connection> _conn) : conn(move(_conn)) {
+    Message(unique_ptr<sql::Connection> _conn) : conn(move(_conn)) {
         if (!conn) {
             cerr << "Error: Connection pointer is null!" << endl;
         }
