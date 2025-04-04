@@ -133,7 +133,7 @@ public:
 		: user_id(_user_id), msg_text(_msg_text), msg_time(_msg_time), m_conn(move(_m_conn)), redis(move(_redis)) {
 		stat_check();		// 객체 생성 시 유저 상태 확인
 
-		if (user_id == 1) {			// 계정이 관리자 일 때 실행	(관리자 id db에 저장 안되있어서 1로 함 나중에 수정)
+		if (user_id == 0) {			// 계정이 관리자 일 때 실행	(관리자 id db에 저장 안되있어서 1로 함 나중에 수정)
 			//thread auto_save([self = this]() {		// auto save 스레드 생성
 			//	self->auto_save_mysql();
 			//	});
@@ -148,7 +148,7 @@ public:
 		}
 	}
 	~Chat_send() {
-		if (user_id == 1) insert_chat_mysql();			// 관리자가 프로그램을 정상 종료해야 저장됨 (관리자 id db에 저장안되있어서 일부러 1로함)
+		if (user_id == 0) insert_chat_mysql();			// 관리자가 프로그램을 정상 종료해야 저장됨 (관리자 id db에 저장안되있어서 일부러 1로함)
 		running = false;
 		if (auto_save_thr.joinable()) auto_save_thr.join();
 	}
