@@ -13,7 +13,9 @@ using json = nlohmann::json;
 
 class Message {
 private:
+
     unique_ptr< sql::Connection> conn; // MySQL 연결 객체
+
     int hand_page = 0;
 
 public:
@@ -26,6 +28,8 @@ public:
 
     // GET 요청을 처리하여 JSON 응답 반환
     void handleMessages(const httplib::Request& req, httplib::Response& res) {
+
+
     try {
         if (req.has_param("page")) {
             hand_page = stoi(req.get_param_value("page"));
@@ -67,6 +71,7 @@ public:
             cout << "No messages found in the database." << endl;
             return result_json;
         }
+
 
         int offset = max(0, totalMessages - (page + 1) * pageSize); // 역순 오프셋
         int limit = min(pageSize, totalMessages - page * pageSize);
