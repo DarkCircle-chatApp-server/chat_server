@@ -6,10 +6,14 @@
 #include "chat_room.hpp"
 #include "chat_print.hpp"
 #include <windows.h>
+#include <vector>
+
 
 using namespace std;
 using namespace sql;
 using json = nlohmann::json;
+
+
 // 채팅 관련 함수 
 void handleChat(const httplib::Request& req, httplib::Response& res) {
 
@@ -18,20 +22,50 @@ void handleChat(const httplib::Request& req, httplib::Response& res) {
     res.set_content("chat", "text/plain");
 }
 
+unique_ptr<sql::Connection> s_conn = mysql_db_conn();              // MySQL DB연동
+R_Conn r_conn;
+auto redis = make_unique<Redis>(r_conn.opts);
+Chat_room rooms(move(redis));          // 채팅방 생성 및 입장 클래스
+
+unordered_map<int, unique_ptr<Chat_send>> user_set;
+mutex user_set_m;
+
+void user_login_and_chat(int id, std::string body_json) {
+    {
+        try {
+            std::lock_guard<std::mutex> lock(user_set_m);
+            user_set[id] = std::make_unique<Chat_send>(
+                id, "", "",
+                mysql_db_conn(),
+                make_unique<Redis>(r_conn.opts)
+            );
+            std::cout << id << " 접속 완료! (스레드)" << std::endl;
+        }
+        catch (const exception& e) {
+            cerr << "Chat_send 생성 중 예외" << e.what() << endl;
+        }
+    }
+    httplib::Request dummy_req;
+    dummy_req.body = body_json;
+
+    httplib::Response dummy_res;
+
+    {
+        std::lock_guard<std::mutex> lock(user_set_m);
+        user_set[id]->insert_chat(dummy_req, dummy_res);
+    }
+}
+
 int main() {
     //SetConsoleOutputCP(CP_UTF8);
     httplib::Server svr;    // httplib::Server 객체 생성
 
-
-
     //MySQLConnector db(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD, MYSQL_DATABASE);
-    shared_ptr<sql::Connection> s_conn = mysql_db_conn();              // MySQL DB연동
 
-    R_Conn r_conn;
-    auto redis = make_shared<Redis>(r_conn.opts);
+    //Chat_send client(1, "", "", s_conn, redis);
 
-    Chat_room user(redis);          // 채팅방 생성 및 입장 클래스
-    Chat_send client(1, "", "", s_conn, redis);
+    //unordered_map<int, unique_ptr<Chat_send>> user_set;
+    //user_set[id] = make_unique<Chat_send>(id, "", "", s_conn, redis);
 
     //return 0;       // 소멸자 확인용
 
@@ -57,22 +91,28 @@ int main() {
         //res.set_header("Access-Control-Allow-Origin", "*");
         std::cout << "/chat/room 요청 받음" << std::endl;
         std::cout << u8"요청 내용: " << req.body << std::endl;
-        user.ch_talk(req, res);
-        client.insert_chat(req, res);
+        json req_json = json::parse(req.body);
+        int user_id = req_json["user_id"];
+        
+        rooms.ch_talk(req, res);
+        lock_guard<mutex> lock(user_set_m);
+        if (user_set.find(user_id) != user_set.end()) {
+            user_set[user_id]->insert_chat(req, res);
+        }
+        else {
+            std::string req_body = req.body;
+            std::thread t(user_login_and_chat, user_id, req_body);
+            t.detach();
+
+        }
+        //client.insert_chat(req, res);
         });
 
-    // redis에 저장된 데이터 mysql에 저장
-    svr.Post("/chat/room/mysql", [&](const httplib::Request& req, httplib::Response& res) {
-
-        cout << "insert_chat_mysql" << endl;
-        client.insert_chat_mysql();
-
-        });
-
-    Message select(s_conn);  // GET 요청 처리
-    svr.Get("/chat/messages", [&](const httplib::Request& req, httplib::Response& res) {
-        select.handleMessages(req, res);
-        });
+    //Message select(s_conn);  // GET 요청 처리
+    //svr.Get("/chat/messages", [&](const httplib::Request& req, httplib::Response& res) {
+    //    select.handleMessa
+    // ges(req, res);
+    //    });
 
     // subsriber 서버 <-> sse
     svr.Get("/chat/sse", [&](const httplib::Request& req, httplib::Response& res) {
@@ -81,7 +121,7 @@ int main() {
         res.set_header("Cache-Control", "no-cache");
         res.set_header("Connection", "keep-alive");
         std::cout << "subscribe channel opened" << endl;
-        user.sse_handler(req, res);
+        rooms.sse_handler(req, res);
         });
 
     //svr.Get("/chat", handleChat);
