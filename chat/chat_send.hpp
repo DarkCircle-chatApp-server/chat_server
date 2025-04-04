@@ -15,7 +15,7 @@ protected:
 	int local_msg_id = 1;				// redis에 저장하기 직전 입력받은 채팅의 번호
 
 	int user_status = 0;				// 유저 상태값 상수화 선언 (디버그 모드일때 오류나서 일단 상수X)
-	
+
 	int r_del_num = 1;					// Redis에서 지워야할 msg_id 첫번째 값을 저장하는 변수
 	int r_data_num = 1;					// Redis에서 sql로 데이터를 넣은 후 Redis에 지워야 할 데이터 수
 	int check_s_data = 1;				// 처음 s_data_num 값
@@ -26,11 +26,14 @@ protected:
 
 	string redis_to_mysql[3] = {};			// redis에 저장된 데이터 sql로 옮기는 배열
 
-	shared_ptr<sql::Connection> m_conn;			// SQL 의존성 주입 객체
-	shared_ptr<Redis> redis;			// Redis 의존성 주입 객체
+	unique_ptr<sql::Connection> m_conn;			// SQL 의존성 주입 객체
+	unique_ptr<Redis> redis;			// Redis 의존성 주입 객체
 
+	thread auto_save_thr;
+	atomic<bool> running = true;
 
-	recursive_mutex del_redis;
+	mutex redis_mtx;
+	mutex mysql_mtx;
 
 	void current_date() {			// C++에서 현재 시간 생성을 MySQL TIMEDATE형에 변환한 함수(클래스 내 호출)
 		time_t now = time(0);
@@ -60,7 +63,10 @@ protected:
 
 	void stat_check() {			// 유저 상태(임시차단) 확인 함수
 		int* num_fix = (int*)&user_status;
-
+		if (!m_conn) {
+			cerr << "stat_check DB 연결 null" << endl;
+			throw runtime_error("stat_check db연결 실패");
+		}
 		try {
 			unique_ptr<PreparedStatement> pstmt(m_conn->prepareStatement("select U.user_id, U.user_status from User as U join Message as M on U.user_id = M.user_id where U.user_id = ? group by U.user_id"));		// user_status 확인 쿼리문
 			pstmt->setInt(1, user_id);
@@ -123,22 +129,32 @@ protected:
 	}
 
 public:
-	Chat_send(int _user_id, const char* _msg_text, const char* _msg_time, shared_ptr<sql::Connection> _m_conn, shared_ptr<Redis> _redis)
-		: user_id(_user_id), msg_text(_msg_text), msg_time(_msg_time), m_conn(move(_m_conn)), redis(_redis) {
+	Chat_send(int _user_id, const char* _msg_text, const char* _msg_time, unique_ptr<sql::Connection> _m_conn, unique_ptr<Redis> _redis)
+		: user_id(_user_id), msg_text(_msg_text), msg_time(_msg_time), m_conn(move(_m_conn)), redis(move(_redis)) {
 		stat_check();		// 객체 생성 시 유저 상태 확인
 
 		if (user_id == 1) {			// 계정이 관리자 일 때 실행	(관리자 id db에 저장 안되있어서 1로 함 나중에 수정)
-			thread auto_save([&]() {		// auto save 스레드 생성
-				auto_save_mysql();
-				});
-			auto_save.detach();			// auto_save_mysql 함수 스레드 분리
+			//thread auto_save([self = this]() {		// auto save 스레드 생성
+			//	self->auto_save_mysql();
+			//	});
+			//auto_save.detach();			// auto_save_mysql 함수 스레드 분리
+			cout << "관리자 접속 - autosave 스레드 생략" << endl;
+			running = true;
+			if (!m_conn) {
+				cerr << "chat_send DB 연결 null" << endl;
+				throw runtime_error("db연결 실패");
+			}
+			auto_save_thr = thread([this]() {auto_save_mysql(); });
 		}
 	}
 	~Chat_send() {
 		if (user_id == 1) insert_chat_mysql();			// 관리자가 프로그램을 정상 종료해야 저장됨 (관리자 id db에 저장안되있어서 일부러 1로함)
+		running = false;
+		if (auto_save_thr.joinable()) auto_save_thr.join();
 	}
 
 	void insert_chat(const httplib::Request& req, httplib::Response& res) {
+		lock_guard<mutex> lock(mysql_mtx);
 		stat_check();		// 차단 됐는지 확인 후 값이 변경 됐으면 변경
 		json req_json = json::parse(req.body);
 
@@ -159,6 +175,7 @@ public:
 	}
 
 	void insert_chat_redis() {		// 입력받은 채팅 redis로 저장하는 함수
+		lock_guard<mutex> lock(redis_mtx);
 		try {
 			local_msg_id = room_msg_num;	// 현재 채팅 내역을 local_msg_id에 저장하면서 전역 변수 값 +1
 
@@ -176,15 +193,29 @@ public:
 	}
 
 	void auto_save_mysql() {			// 자동 저장 함수
-		while (true) {
-			insert_chat_mysql();
+		while (running) {
+			try {
+				if (!m_conn) {
+					cerr << "auto_save_mysql DB X" << endl;
+					return;
+				}
+				insert_chat_mysql();
+			}
+			catch (const exception& e) {
+				cerr << "auto save mysql 예외" << e.what() << endl;
+			}
 			this_thread::sleep_for(chrono::minutes(1));			// 자동 저장 시간 설정(분)
 		}
 	}
 
 	void insert_chat_mysql() {			// Redis에 담은 채팅 데이터 MySQL로 이동
 		//json req_json = json::parse(req.body);
-		
+		if (!m_conn) {
+			cerr << "insert_chat_mysql: m_conn nullptr" << endl;
+			return;
+		}
+		lock_guard<mutex> lock(mysql_mtx);
+
 		if (r_data_num > s_data_num) {
 			del_chat_redis();
 		}
@@ -236,4 +267,6 @@ public:
 
 		del_chat_redis();			// mysql 데이터 성공적으로 넣으면 redis 데이터 삭제
 	}
+
+	int get_user_id() const { return user_id; }
 };

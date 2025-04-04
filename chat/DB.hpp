@@ -1,7 +1,11 @@
 #pragma once
 
 #include <iostream>
-#include <mysql/jdbc.h>
+#include <mysql_driver.h>
+#include <mysql_connection.h>
+#include <cppconn/connection.h>
+#include <cppconn/prepared_statement.h>
+#include <cppconn/resultset.h>
 #include <sw/redis++/redis++.h>
 
 using namespace std;
@@ -33,7 +37,7 @@ public:
 			conn->setSchema(database);
 		}
 		catch (SQLException& e) {
-			cerr << "MySQL Connection Failed!!" << endl;
+			cerr << "MySQL Connection Failed!! " << e.what() << endl;
 		}
 	}
 	sql::Connection* getConnection() {
@@ -44,11 +48,17 @@ public:
 };
 
 // mysql 연결함수
-inline shared_ptr<sql::Connection> mysql_db_conn() {
-	sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
-	shared_ptr<sql::Connection> conn(driver->connect(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD));
-	conn->setSchema(MYSQL_DATABASE);
-	return conn;
+inline unique_ptr<sql::Connection> mysql_db_conn() {
+	try {
+		sql::mysql::MySQL_Driver* driver = sql::mysql::get_mysql_driver_instance();
+		unique_ptr<sql::Connection> conn(driver->connect(MYSQL_SERVER_IP, MYSQL_USERNAME, MYSQL_PASSWORD));
+		conn->setSchema(MYSQL_DATABASE);
+		return conn;
+	}
+	catch (sql::SQLException& e) {
+		cerr << "mysql 오류" << e.what() << endl;
+		return nullptr;
+	}
 }
 
 struct R_Conn {					// Redis 연결 구조체
