@@ -109,11 +109,10 @@ int main() {
         });
 
 
-    //Message select(s_conn);  // GET 요청 처리
-    //svr.Get("/chat/messages", [&](const httplib::Request& req, httplib::Response& res) {
-    //    select.handleMessa
-    // ges(req, res);
-    //    });
+    Message select(move(s_conn));  // GET 요청 처리
+    svr.Get("/chat/messages", [&](const httplib::Request& req, httplib::Response& res) {
+        select.handleMessages(req, res);
+        });
 
 
     // subsriber 서버 <-> sse
