@@ -16,32 +16,35 @@ private:
 	string username;
 	string password;
 	string database;
-	unique_ptr<Connection> conn;
+	Connection* conn;
 public:
 	MySQLConnector(const string& serv, const string& user, const string& passwd, const string& db)
 		: server(serv), username(user), password(passwd), database(db) {
 		try {
 			mysql::MySQL_Driver* driver = mysql::get_mysql_driver_instance();
-			conn = unique_ptr<Connection>(driver->connect(server, username, password));
+			conn = driver->connect(server, username, password);
 			conn->setSchema(database);
+			conn->setClientOption("OPT_RECONNECT", "true");  // 자동 재연결 설정
 			cout << "MySQL Connection success" << endl;
 		}
 		catch (SQLException& e) {
 			cerr << "MySQL Connection failed" << e.what() << endl;
 		}
+		catch (exception& e) {
+			cerr << "Unknown error during MySQL connection: " << e.what() << endl;
+		}
 	}
 	// 포인터 conn 반환(다른 객체에서 MySQLConnector의 conn을 사용하기 위해 만들었음) 
 	Connection* getConnection() {
 		if (!conn) {
-			cerr << "Database connection is not initialized!" << endl;
-			return nullptr;
+			throw runtime_error("Database connection is not initialized or has failed.");
 		}
-		return conn.get();
+		return conn;
 	}
 	~MySQLConnector() {
 		if (conn) {
 			cout << "MySQL Disconnect" << endl;
-			conn.reset();
+			delete conn;
 		}
 	}
 };

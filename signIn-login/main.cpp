@@ -29,6 +29,9 @@ int main() {
     SSL_library_init();
     SetConsoleOutputCP(CP_UTF8);    // 콘솔 출력 인코딩. 한글입력값 왼쪽에 u8 붙여줄 것
     MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
+	auto connection = db.getConnection();
+
+	SignIn signin(connection);  // getConnection()에서 반환된 MySQLConnector의 conn을 signin객체에 주입;
     //SignIn signin(db.getConnection());  // getConnection()에서 반환된 MySQLConnector의 conn을 signin객체에 주입
     cout << "test start" << endl;
     //signin.get_user_status("admin12345");
@@ -48,30 +51,25 @@ int main() {
         res.status = 204;
         });*/
 
-	SignIn login(db.getConnection());
     // "/login" URL로 들어오는 GET 요청을 handleLogin 함수로 처리
     svr.Post("/login", [&](const httplib::Request& req, httplib::Response& res) {
-        login.handle_login(req, res);
+        signin.handle_login(req, res);
     });
     
-    SignIn idCheck(db.getConnection());
     svr.Post("/idCheck", [&](const httplib::Request& req, httplib::Response& res) {
-        idCheck.check_validation(req, res);
+        signin.check_validation(req, res);
     });
 
-	SignIn stacheck(db.getConnection());
     svr.Get("/statCheck/:login_id", [&](const httplib::Request& req, httplib::Response& res) {
-        stacheck.check_user_status(req, res);
+        signin.check_user_status(req, res);
     });
 
-    SignIn getName(db.getConnection());
     svr.Get("/getName/:login_id", [&](const httplib::Request& req, httplib::Response& res) {
-        getName.show_name(req, res);
+        signin.show_name(req, res);
     });
 
-    SignIn showId(db.getConnection());
     svr.Get("/showId/:login_id", [&](const httplib::Request& req, httplib::Response& res) {
-        showId.show_id(req, res);
+        signin.show_id(req, res);
     });
 
     // 아이디 중복 체크
@@ -97,17 +95,15 @@ int main() {
     // "/signIn" URL로 들어오는 POST 요청을 handleSignIn 함수로 처리
     // 람다식 쓴 이유 : 람다 안쓰면 signin.handleSignIn() 이런식으로 외부 객체 함수에 접근 못한다고 함..시발
     // [&] : 캡처 리스트 - 현재 스코프의 변수들을 참조 방식으로 캡처(설명에 이렇게 나와있는데 그냥 람다식 앞에 붙이는 코드인듯함)
-    SignIn signin(db.getConnection());
     svr.Post("/signIn", [&](const httplib::Request& req, httplib::Response& res) {
         //std::cout << "Request body: " << req.body << std::endl;
         signin.handle_signIn(req, res);
     });
 
-    SignIn update2(db.getConnection());
     // 회원 탈퇴 요청
     svr.Put("/update2", [&](const httplib::Request& req, httplib::Response& res) {
         cout << "call success" << endl;
-        update2.handle_delete(req, res);
+        signin.handle_delete(req, res);
     });
 
     // CORS 설정(8080 포트에서 들어오는 요청 허용)
@@ -118,9 +114,9 @@ int main() {
         });
 
     // 5001번 포트로 들어오는 클라이언트 요청 받음
-    std::cout << "Login Service running: http://localhost:5001" << std::endl;
-    std::cout << "SignIn Service running: http://localhost:5001" << std::endl;
-    svr.listen("0.0.0.0", 5001);
+    std::cout << "Login Service running: http://localhost:8880" << std::endl;
+    std::cout << "SignIn Service running: http://localhost:8880" << std::endl;
+    svr.listen("0.0.0.0", 8880);
 
     //svr.listen("0.0.0.0", 5002);
 
