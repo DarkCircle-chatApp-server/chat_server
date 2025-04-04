@@ -2,8 +2,8 @@
 #include <iostream>
 #include <string>
 #include <vector>
-#include <windows.h> // ÇÑ±Û±úÁü ¹æÁö
-#include "DB.hpp"  // MySQLConnector Å¬·¡½º¸¦ Æ÷ÇÔÇÏ´Â Çì´õ
+#include <windows.h> // í•œê¸€ê¹¨ì§ ë°©ì§€
+#include "DB.hpp"  // MySQLConnector í´ë˜ìŠ¤ë¥¼ í¬í•¨í•˜ëŠ” í—¤ë”
 #include "httplib.h"
 #include "json.hpp"
 #include <sstream>
@@ -13,7 +13,9 @@ using json = nlohmann::json;
 
 class Message {
 private:
-    unique_ptr< sql::Connection> conn; // MySQL ¿¬°á °´Ã¼
+
+    unique_ptr< sql::Connection> conn; // MySQL ì—°ê²° ê°ì²´
+
     int hand_page = 0;
 
 public:
@@ -24,21 +26,23 @@ public:
     }
     ~Message() {}
 
-    // GET ¿äÃ»À» Ã³¸®ÇÏ¿© JSON ÀÀ´ä ¹İÈ¯
+    // GET ìš”ì²­ì„ ì²˜ë¦¬í•˜ì—¬ JSON ì‘ë‹µ ë°˜í™˜
     void handleMessages(const httplib::Request& req, httplib::Response& res) {
-        try {
-            if (req.has_param("page")) {
-                hand_page = stoi(req.get_param_value("page"));
-            }
 
-            json messages = print_MessageJson(hand_page);
-            res.set_content(messages.dump(), "application/json");
+
+    try {
+        if (req.has_param("page")) {
+            hand_page = stoi(req.get_param_value("page"));
         }
-        catch (const exception& e) {
-            cout << "Query failed: " << e.what() << endl;
-        }
+
+        json messages = print_MessageJson(hand_page);
+        res.set_content(messages.dump(), "application/json");
     }
-    // ¸Ş½ÃÁö °³¼ö ¹İÈ¯
+    catch (const exception& e) {
+        cout << "Query failed: " << e.what() << endl;
+    }
+}
+    // ë©”ì‹œì§€ ê°œìˆ˜ ë°˜í™˜
     int countMessages() {
         int count = 0;
         try {
@@ -56,7 +60,7 @@ public:
         return count;
     }
 
-    //¿©°¡ 15°³ Ãâ·ÂÇÏ´Â°Å 
+    //ì—¬ê°€ 15ê°œ ì¶œë ¥í•˜ëŠ”ê±° 
 
     json print_MessageJson(int page = 0) {
         json result_json = json::array();
@@ -68,7 +72,8 @@ public:
             return result_json;
         }
 
-        int offset = max(0, totalMessages - (page + 1) * pageSize); // ¿ª¼ø ¿ÀÇÁ¼Â
+
+        int offset = max(0, totalMessages - (page + 1) * pageSize); // ì—­ìˆœ ì˜¤í”„ì…‹
         int limit = min(pageSize, totalMessages - page * pageSize);
 
         try {
