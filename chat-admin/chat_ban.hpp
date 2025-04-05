@@ -1,10 +1,15 @@
-// Ã¤ÆÃ ¹ê ±â´É
+// ì±„íŒ… ë°´ ê¸°ëŠ¥
 
 #pragma once
 #include<iostream>
 #include"httplib.h"
 #include"DB_admin.hpp"
-#include <mysql/jdbc.h>
+#include <mysql_driver.h>
+#include <mysql_connection.h>
+#include <cppconn/connection.h>
+#include <cppconn/prepared_statement.h>
+#include <cppconn/resultset.h>
+//#include <mysql/jdbc.h>
 #include <windows.h>
 #include <string>
 #include "json.hpp"
@@ -13,7 +18,7 @@ using namespace std;
 using namespace sql;
 using json = nlohmann::json;
 
-// ¹ê Å¬·¡½º »ı¼º ¹× ±â´É ÇÔ¼ö
+// ë°´ í´ë˜ìŠ¤ ìƒì„± ë° ê¸°ëŠ¥ í•¨ìˆ˜
 class User_ban {
 private:
 	int user_id;
@@ -21,53 +26,52 @@ private:
 public:
 	User_ban(Connection* connection) : conn(connection) {}
 
-	// ¹ê ±â´É
+	// ë°´ ê¸°ëŠ¥
 	void User_ban_func(const int& user_id) {
-		unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("UPDATE User SET user_status = 3 WHERE user_id = ?") };					
-		// user_idÀÇ status 3(Ã¤ÆÃ±İÁö)·Î
+		unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("UPDATE User SET user_status = 3 WHERE user_id = ?") };
+		// user_idì˜ status 3(ì±„íŒ…ê¸ˆì§€)ë¡œ
 		pstmt->setInt(1, user_id);
 		pstmt->executeUpdate();
 	}
-	// ¹ê ÇØÁ¦ ±â´É
+	// ë°´ í•´ì œ ê¸°ëŠ¥
 	void User_unban_func(const int& user_id) {
-		unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("UPDATE User SET user_status = 1 WHERE user_id = ?") };					
-		// user_idÀÇ status 1(ÀÏ¹İ»óÅÂ)·Î
+		unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("UPDATE User SET user_status = 1 WHERE user_id = ?") };
+		// user_idì˜ status 1(ì¼ë°˜ìƒíƒœ)ë¡œ
 		pstmt->setInt(1, user_id);
 		pstmt->executeUpdate();
 	}
 
-	// ¹ê Ã³¸® ÇÔ¼ö
+	// ë°´ ì²˜ë¦¬ í•¨ìˆ˜
 	void handle_user_ban(const httplib::Request& req, httplib::Response& res) {
 		try {
 			json req_json = json::parse(req.body);
 
-			// json µ¥ÀÌÅÍ ÃßÃâ
+			// json ë°ì´í„° ì¶”ì¶œ
 			int user_id = req_json["user_id"];
 
-			// ¹ê Ã³¸®
+			// ë°´ ì²˜ë¦¬
 			User_ban_func(user_id);
-			res.set_content("Ban sucess", "text/plain");		// ÀÀ´äÈ£Ãâ
+			res.set_content("Ban sucess", "text/plain");		// ì‘ë‹µí˜¸ì¶œ
 		}
 		catch (const SQLException& e) {
 			cout << "Ban failed" << e.what() << endl;
 		}
 	}
 
-	// ¹ê ÇØÁ¦ Ã³¸® ÇÔ¼ö
+	// ë°´ í•´ì œ ì²˜ë¦¬ í•¨ìˆ˜
 	void handle_user_unban(const httplib::Request& req, httplib::Response& res) {
 		try {
 			json req_json = json::parse(req.body);
 
-			// json µ¥ÀÌÅÍ ÃßÃâ
+			// json ë°ì´í„° ì¶”ì¶œ
 			int user_id = req_json["user_id"];
 
-			// ¹ê ÇØÁ¦ Ã³¸®
+			// ë°´ í•´ì œ ì²˜ë¦¬
 			User_unban_func(user_id);
-			res.set_content("Unban sucess", "text/plain");		// ÀÀ´äÈ£Ãâ
+			res.set_content("Unban sucess", "text/plain");		// ì‘ë‹µí˜¸ì¶œ
 		}
 		catch (const SQLException& e) {
 			cout << "Unban failed" << e.what() << endl;
 		}
 	}
 };
-
