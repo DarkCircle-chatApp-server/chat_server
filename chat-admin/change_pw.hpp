@@ -1,10 +1,15 @@
-// ÀÚ½ÅÀÇ ºñ¹Ğ¹øÈ£ º¯°æ ±â´É
+// ìì‹ ì˜ ë¹„ë°€ë²ˆí˜¸ ë³€ê²½ ê¸°ëŠ¥
 
 #pragma once
 #include<iostream>
 #include"httplib.h"
 #include"DB_admin.hpp"
-#include<mysql/jdbc.h>
+#include <mysql_driver.h>
+#include <mysql_connection.h>
+#include <cppconn/connection.h>
+#include <cppconn/prepared_statement.h>
+#include <cppconn/resultset.h>
+//#include<mysql/jdbc.h>
 #include<windows.h>
 #include<string>
 #include"json.hpp"
@@ -13,56 +18,56 @@ using namespace std;
 using namespace sql;
 using json = nlohmann::json;
 
-// ºñ¹Ğ¹øÈ£ º¯°æ Å¬·¡½º »ı¼º ¹× ±â´ÉÇÔ¼ö
+// ë¹„ë°€ë²ˆí˜¸ ë³€ê²½ í´ë˜ìŠ¤ ìƒì„± ë° ê¸°ëŠ¥í•¨ìˆ˜
 class Change_PW {
 private:
 	string login_pw;
 	int user_id;
 	Connection* conn;
 public:
-	Change_PW(Connection* connection) : conn(connection){}
+	Change_PW(Connection* connection) : conn(connection) {}
 
-	// PW º¯°æ ±â´É
+	// PW ë³€ê²½ ê¸°ëŠ¥
 	void Change_PW_func(const string& ch_login_pw, const int& user_id) {
 		unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("UPDATE User SET login_pw = ? WHERE user_id = ?") };
-		// user_id = ? ·Î ÀÚ½ÅÀÇ °ÍÀ¸·Î¸¸ login_pw¸¦ UPDATE
+		// user_id = ? ë¡œ ìì‹ ì˜ ê²ƒìœ¼ë¡œë§Œ login_pwë¥¼ UPDATE
 		pstmt->setString(1, ch_login_pw);
 		pstmt->setInt(2, user_id);
 		pstmt->executeUpdate();
 	}
 
-	// ÇöÀç ºñ¹Ğ¹øÈ£°¡ DBÀÇ ºñ¹Ğ¹øÈ£¿Í ÀÏÄ¡¿©ºÎ
+	// í˜„ì¬ ë¹„ë°€ë²ˆí˜¸ê°€ DBì˜ ë¹„ë°€ë²ˆí˜¸ì™€ ì¼ì¹˜ì—¬ë¶€
 	bool Is_pw_equal_DB(const string& plogin_pw, const int& user_id) {
-		
-		//¿¹¿Ü Ã³¸®
+
+		//ì˜ˆì™¸ ì²˜ë¦¬
 		if (!conn) {
 			cerr << "Database connection is not initialized!" << endl;
 			return -1;
 		}
 		try {
-			// µ¥ÀÌÅÍ º£ÀÌ½º¿¡¼­ ÇØ´ç user_idÀÇ login_pw¸¦ °¡Á®¿Í¼­
+			// ë°ì´í„° ë² ì´ìŠ¤ì—ì„œ í•´ë‹¹ user_idì˜ login_pwë¥¼ ê°€ì ¸ì™€ì„œ
 			unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("SELECT login_pw FROM User WHERE user_id = ?") };
 			pstmt->setInt(1, user_id);
 			unique_ptr<ResultSet> res{ pstmt->executeQuery() };
 
-			// DB µ¥ÀÌÅÍ¿Í ÀÔ·ÂÇÑ µ¥ÀÌÅÍ µ¿ÀÏ¿©ºÎ È®ÀÎÇÏ¿© °°À¸¸é 1
+			// DB ë°ì´í„°ì™€ ì…ë ¥í•œ ë°ì´í„° ë™ì¼ì—¬ë¶€ í™•ì¸í•˜ì—¬ ê°™ìœ¼ë©´ 1
 			if (res->next()) {
 				string db_user_pw = res->getString("login_pw");
 				return db_user_pw == plogin_pw;
 			}
-			// ´Ù¸£¸é 0
+			// ë‹¤ë¥´ë©´ 0
 			else {
 				return false;
 			}
 		}
-		// ¿¹¿Ü ¹ß»ı ½Ã false ¹İÈ¯
+		// ì˜ˆì™¸ ë°œìƒ ì‹œ false ë°˜í™˜
 		catch (const SQLException& e) {
 			cerr << "SQL Error: " << e.what() << endl;
 		}
 		return false;
 	}
 
-	// ±â´É È£Ãâ ÇÔ¼ö
+	// ê¸°ëŠ¥ í˜¸ì¶œ í•¨ìˆ˜
 	void handle_Change_PW(const httplib::Request& req, httplib::Response& res) {
 		try {
 			json req_json = json::parse(req.body);
