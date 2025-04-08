@@ -1,4 +1,6 @@
+
 // 자신의 비밀번호 변경 기능
+
 
 #pragma once
 #include<iostream>
@@ -18,7 +20,9 @@ using namespace std;
 using namespace sql;
 using json = nlohmann::json;
 
+
 // 비밀번호 변경 클래스 생성 및 기능함수
+
 class Change_PW {
 private:
 	string login_pw;
@@ -36,38 +40,47 @@ public:
 		pstmt->executeUpdate();
 	}
 
+
 	// 현재 비밀번호가 DB의 비밀번호와 일치여부
 	bool Is_pw_equal_DB(const string& plogin_pw, const int& user_id) {
 
 		//예외 처리
+
 		if (!conn) {
 			cerr << "Database connection is not initialized!" << endl;
 			return -1;
 		}
 		try {
+
 			// 데이터 베이스에서 해당 user_id의 login_pw를 가져와서
 			unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("SELECT login_pw FROM User WHERE user_id = ?") };
 			pstmt->setInt(1, user_id);
 			unique_ptr<ResultSet> res{ pstmt->executeQuery() };
+
 
 			// DB 데이터와 입력한 데이터 동일여부 확인하여 같으면 1
 			if (res->next()) {
 				string db_user_pw = res->getString("login_pw");
 				return db_user_pw == plogin_pw;
 			}
+
 			// 다르면 0
+
 			else {
 				return false;
 			}
-		}
+
 		// 예외 발생 시 false 반환
+
 		catch (const SQLException& e) {
 			cerr << "SQL Error: " << e.what() << endl;
 		}
 		return false;
 	}
 
+
 	// 기능 호출 함수
+
 	void handle_Change_PW(const httplib::Request& req, httplib::Response& res) {
 		try {
 			json req_json = json::parse(req.body);
@@ -78,11 +91,15 @@ public:
 
 			if (Is_pw_equal_DB(plogin_pw, user_id) == 1) {
 				Change_PW_func(ch_login_pw, user_id);
-				res.set_content("Change sucess", "text/plain");
+				res.status = 200;
+				res.set_content(R"({"success": true, "message": "비밀번호가 변경되었습니다."})", "application/json");
+				//res.set_content("Change sucess", "text/plain");
 			}
 			else {
 				cout << "This PW is different from DB PW" << endl;
-				res.set_content("Change failed", "text/plain");
+				res.status = 400;
+				res.set_content(R"({"success": false, "message": "현재 비밀번호가 일치하지 않습니다."})", "application/json");
+				//res.set_content("Change failed", "text/plain");
 			}
 		}
 		catch (const SQLException& e) {

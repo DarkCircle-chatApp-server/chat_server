@@ -260,7 +260,7 @@ public:
 		}
 		else {
 			cout << "차단 상태" << endl;
-			res.set_content(R"({"status": "blocked", "message": "User is blocked"})", "application/json");
+			//res.set_content(R"({"status": "blocked", "message": "User is blocked"})", "application/json");
 		}
 	}
 };
