@@ -1,14 +1,14 @@
 #include "httplib.h"
 #include <iostream>
 
-// °¢ ÇÚµé·¯ ÇÔ¼ö Á¤ÀÇ
+// ê° í•¸ë“¤ëŸ¬ í•¨ìˆ˜ ì •ì˜
 
-// ±âº» API Gateway ¿£µåÆ÷ÀÎÆ®
+// ê¸°ë³¸ API Gateway ì—”ë“œí¬ì¸íŠ¸
 void handleRoot(const httplib::Request&, httplib::Response& res) {
     res.set_content("API Gateway is running", "text/plain");
 }
 
-// test1 ¡æ 5001¹ø Æ÷Æ®ÀÇ login È£Ãâ
+// test1 â†’ 5001ë²ˆ í¬íŠ¸ì˜ login í˜¸ì¶œ
 void routing_login(const httplib::Request& req, httplib::Response& res) {
     /*res.set_header("Access-Control-Allow-Origin", "*");
     res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -21,13 +21,13 @@ void routing_login(const httplib::Request& req, httplib::Response& res) {
         res.set_content(response->body, response->get_header_value("Content-Type"));
     }
     else {
-        res.status = 500; // ¼­¹ö ¿À·ù ÀÀ´ä
+        res.status = 500; // ì„œë²„ ì˜¤ë¥˜ ì‘ë‹µ
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content("Error fetching data from /login", "text/plain");
     }
 }
 
-// test2 ¡æ 5001¹ø Æ÷Æ®ÀÇ signIn È£Ãâ
+// test2 â†’ 5001ë²ˆ í¬íŠ¸ì˜ signIn í˜¸ì¶œ
 void routing_signup(const httplib::Request& req, httplib::Response& res) {
     httplib::Client cli("http://localhost:8880");
     auto response = cli.Post("/signIn", req.body, "application/json");
@@ -38,13 +38,13 @@ void routing_signup(const httplib::Request& req, httplib::Response& res) {
         res.set_content(response->body, response->get_header_value("Content-Type"));
     }
     else {
-        res.status = 500; // ¼­¹ö ¿À·ù ÀÀ´ä
+        res.status = 500; // ì„œë²„ ì˜¤ë¥˜ ì‘ë‹µ
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content("Error fetching data from /signIn", "text/plain");
     }
 }
 
-// test3 ¡æ 5001¹ø Æ÷Æ®ÀÇ idCheck È£Ãâ
+// test3 â†’ 5001ë²ˆ í¬íŠ¸ì˜ idCheck í˜¸ì¶œ
 void routing_check(const httplib::Request& req, httplib::Response& res) {
     httplib::Client cli("http://localhost:8880");
     auto response = cli.Post("/idCheck", req.body, "application/json");
@@ -55,17 +55,17 @@ void routing_check(const httplib::Request& req, httplib::Response& res) {
         res.set_content(response->body, response->get_header_value("Content-Type"));
     }
     else {
-        res.status = 500; // ¼­¹ö ¿À·ù ÀÀ´ä
+        res.status = 500; // ì„œë²„ ì˜¤ë¥˜ ì‘ë‹µ
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content("Error fetching data from /signIn", "text/plain");
     }
 }
 
-// 5001¹ø Æ÷Æ®ÀÇ /statCheck/:user_id È£Ãâ
+// 5001ë²ˆ í¬íŠ¸ì˜ /statCheck/:user_id í˜¸ì¶œ
 void routing_statCheck(const httplib::Request& req, httplib::Response& res) {
     if (req.path_params.find("login_id") == req.path_params.end()) {
         res.status = 400;
-        res.set_content("login_id°¡ ¾ø½À´Ï´Ù.", "text/plain");
+        res.set_content("login_idê°€ ì—†ìŠµë‹ˆë‹¤.", "text/plain");
         return;
     }
     std::string login_id = req.path_params.at("login_id");
@@ -86,7 +86,7 @@ void routing_statCheck(const httplib::Request& req, httplib::Response& res) {
 void routing_getName(const httplib::Request& req, httplib::Response& res) {
     if (req.path_params.find("login_id") == req.path_params.end()) {
         res.status = 400;
-        res.set_content("login_id°¡ ¾ø½À´Ï´Ù.", "text/plain");
+        res.set_content("login_idê°€ ì—†ìŠµë‹ˆë‹¤.", "text/plain");
         return;
     }
     std::string login_id = req.path_params.at("login_id");
@@ -107,7 +107,7 @@ void routing_getName(const httplib::Request& req, httplib::Response& res) {
 void routing_showId(const httplib::Request& req, httplib::Response& res) {
     if (req.path_params.find("login_id") == req.path_params.end()) {
         res.status = 400;
-        res.set_content("login_id°¡ ¾ø½À´Ï´Ù.", "text/plain");
+        res.set_content("login_idê°€ ì—†ìŠµë‹ˆë‹¤.", "text/plain");
         return;
     }
     std::string login_id = req.path_params.at("login_id");
@@ -135,7 +135,7 @@ void routing_ban(const httplib::Request& req, httplib::Response& res) {
         res.set_content(response->body, response->get_header_value("Content-Type"));
     }
     else {
-        res.status = 500; // ¼­¹ö ¿À·ù ÀÀ´ä
+        res.status = 500; // ì„œë²„ ì˜¤ë¥˜ ì‘ë‹µ
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content("Error fetching data from /signIn", "text/plain");
     }
@@ -166,7 +166,7 @@ void routing_adminBan(const httplib::Request& req, httplib::Response& res) {
         res.set_content(response->body, response->get_header_value("Content-Type"));
     }
     else {
-        res.status = 500; // ¼­¹ö ¿À·ù ÀÀ´ä
+        res.status = 500; // ì„œë²„ ì˜¤ë¥˜ ì‘ë‹µ
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content("Error fetching data from /chat/admin/user_delete", "text/plain");
     }
@@ -182,7 +182,7 @@ void routing_adminUnban(const httplib::Request& req, httplib::Response& res) {
         res.set_content(response->body, response->get_header_value("Content-Type"));
     }
     else {
-        res.status = 500; // ¼­¹ö ¿À·ù ÀÀ´ä
+        res.status = 500; // ì„œë²„ ì˜¤ë¥˜ ì‘ë‹µ
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content("Error fetching data from /chat/admin/unban", "text/plain");
     }
@@ -198,7 +198,23 @@ void routing_setAdmin(const httplib::Request& req, httplib::Response& res) {
         res.set_content(response->body, response->get_header_value("Content-Type"));
     }
     else {
-        res.status = 500; // ¼­¹ö ¿À·ù ÀÀ´ä
+        res.status = 500; // ì„œë²„ ì˜¤ë¥˜ ì‘ë‹µ
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_content("Error fetching data from /chat/admin/unban", "text/plain");
+    }
+}
+
+void routing_change_pw(const httplib::Request& req, httplib::Response& res) {
+    httplib::Client cli("http://localhost:8882");
+    auto response = cli.Put("/chat/admin/change_pw", req.body, "application/json");
+    if (response) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.status = response->status;
+        std::cout << "Backend response: " << response->body << std::endl;
+        res.set_content(response->body, response->get_header_value("Content-Type"));
+    }
+    else {
+        res.status = 500; // ì„œë²„ ì˜¤ë¥˜ ì‘ë‹µ
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content("Error fetching data from /chat/admin/unban", "text/plain");
     }
@@ -214,13 +230,13 @@ void routing_admin_select(const httplib::Request& req, httplib::Response& res) {
         res.set_content(response->body, response->get_header_value("Content-Type"));
     }
     else {
-        res.status = 500; // ¼­¹ö ¿À·ù ÀÀ´ä
+        res.status = 500; // ì„œë²„ ì˜¤ë¥˜ ì‘ë‹µ
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content("Error fetching data from /signIn", "text/plain");
     }
 }
 
-// 5003Æ÷Æ® Ã¤ÆÃ Àü¼Û
+// 5003í¬íŠ¸ ì±„íŒ… ì „ì†¡
 void routing_send_chat(const httplib::Request& req, httplib::Response& res) {
     /*res.set_header("Access-Control-Allow-Origin", "*");
     res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -234,7 +250,7 @@ void routing_send_chat(const httplib::Request& req, httplib::Response& res) {
         res.set_content(response->body, response->get_header_value("Content-Type"));
     }
     else {
-        res.status = 500; // ¼­¹ö ¿À·ù ÀÀ´ä
+        res.status = 500; // ì„œë²„ ì˜¤ë¥˜ ì‘ë‹µ
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_content("Error fetching data from /login", "text/plain");
     }
@@ -255,6 +271,22 @@ void routing_showMessages(const httplib::Request& req, httplib::Response& res) {
     }
 }
 
+void routing_enter_chat_room(const httplib::Request& req, httplib::Response& res) {
+    httplib::Client cli("http://localhost:8881");
+    auto response = cli.Post("/chat/enter", req.body, "application/json");
+    if (response) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.status = response->status;
+        std::cout << "Backend response: " << response->body << std::endl;
+        res.set_content(response->body, response->get_header_value("Content-Type"));
+    }
+    else {
+        res.status = 500; // ì„œë²„ ì˜¤ë¥˜ ì‘ë‹µ
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_content("Error fetching data from /signIn", "text/plain");
+    }
+}
+
 int main() {
     httplib::Server svr;
 
@@ -262,8 +294,8 @@ int main() {
         res.set_header("Access-Control-Allow-Origin", "*");
         res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-        res.status = 204; 
-    });
+        res.status = 204;
+        });
 
     svr.Options("/signIn", [](const httplib::Request&, httplib::Response& res) {
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -284,7 +316,7 @@ int main() {
         res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
         res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
         res.status = 204;
-    });
+        });
 
     svr.Options("/getName/:login_id", [](const httplib::Request&, httplib::Response& res) {
         res.set_header("Access-Control-Allow-Origin", "*");
@@ -356,19 +388,33 @@ int main() {
         res.status = 204;
         });
 
-    // "/" °æ·Î¿¡ ´ëÇØ handleRoot ÇÔ¼ö ¿¬°á
+    svr.Options("/chat/enter", [](const httplib::Request&, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+        });
+
+    svr.Options("/chat/admin/change_pw", [](const httplib::Request&, httplib::Response& res) {
+        res.set_header("Access-Control-Allow-Origin", "*");
+        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+        res.status = 204;
+        });
+
+    // "/" ê²½ë¡œì— ëŒ€í•´ handleRoot í•¨ìˆ˜ ì—°ê²°
     svr.Get("/", handleRoot);
 
-    // "/test1" °æ·Î¿¡ ´ëÇØ handleTest1 ÇÔ¼ö ¿¬°á
+    // "/test1" ê²½ë¡œì— ëŒ€í•´ handleTest1 í•¨ìˆ˜ ì—°ê²°
     svr.Post("/login", routing_login);
 
-    // "/test2" °æ·Î¿¡ ´ëÇØ handleTest2 ÇÔ¼ö ¿¬°á
+    // "/test2" ê²½ë¡œì— ëŒ€í•´ handleTest2 í•¨ìˆ˜ ì—°ê²°
     svr.Post("/signIn", routing_signup);
 
-    // "/test3" °æ·Î¿¡ ´ëÇØ handleTest3 ÇÔ¼ö ¿¬°á
+    // "/test3" ê²½ë¡œì— ëŒ€í•´ handleTest3 í•¨ìˆ˜ ì—°ê²°
     svr.Post("/idCheck", routing_check);
 
-    // "/test4" °æ·Î¿¡ ´ëÇØ handleTest4 ÇÔ¼ö ¿¬°á
+    // "/test4" ê²½ë¡œì— ëŒ€í•´ handleTest4 í•¨ìˆ˜ ì—°ê²°
     svr.Get("/statCheck/:login_id", routing_statCheck);
 
     svr.Get("/getName/:login_id", routing_getName);
@@ -385,20 +431,25 @@ int main() {
 
     svr.Put("/chat/admin/status_update", routing_setAdmin);
 
+    svr.Put("/chat/admin/change_pw", routing_change_pw);
+
     svr.Post("/chat/admin/user_select", routing_admin_select);
 
     svr.Post("/chat/room", routing_send_chat);
-    
+
     svr.Get("/chat/messages", routing_showMessages);
 
+    svr.Post("/chat/enter", routing_enter_chat_room);
 
-    // CORS ¼³Á¤
+
+
+    // CORS ì„¤ì •
     //svr.set_default_headers({
-    //    { "Access-Control-Allow-Origin", "*" },     // ¸ğµç µµ¸ŞÀÎ¿¡¼­ Á¢±Ù Çã¿ë
+    //    { "Access-Control-Allow-Origin", "*" },     // ëª¨ë“  ë„ë©”ì¸ì—ì„œ ì ‘ê·¼ í—ˆìš©
     //    { "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE" },
     //    { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
     //    });
 
-    std::cout << "API Gateway ½ÇÇà Áß: http://localhost:8080" << std::endl;
+    std::cout << "API Gateway ì‹¤í–‰ ì¤‘: http://localhost:8080" << std::endl;
     svr.listen("0.0.0.0", 8080);
 }
