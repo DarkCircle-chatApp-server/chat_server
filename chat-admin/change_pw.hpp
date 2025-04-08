@@ -1,10 +1,17 @@
-// �ڽ��� ��й�ȣ ���� ���
+
+// 자신의 비밀번호 변경 기능
+
 
 #pragma once
 #include<iostream>
 #include"httplib.h"
 #include"DB_admin.hpp"
-#include<mysql/jdbc.h>
+#include <mysql_driver.h>
+#include <mysql_connection.h>
+#include <cppconn/connection.h>
+#include <cppconn/prepared_statement.h>
+#include <cppconn/resultset.h>
+//#include<mysql/jdbc.h>
 #include<windows.h>
 #include<string>
 #include"json.hpp"
@@ -13,56 +20,67 @@ using namespace std;
 using namespace sql;
 using json = nlohmann::json;
 
-// ��й�ȣ ���� Ŭ���� ���� �� ����Լ�
+
+// 비밀번호 변경 클래스 생성 및 기능함수
+
 class Change_PW {
 private:
 	string login_pw;
 	int user_id;
 	Connection* conn;
 public:
-	Change_PW(Connection* connection) : conn(connection){}
+	Change_PW(Connection* connection) : conn(connection) {}
 
-	// PW ���� ���
+	// PW 변경 기능
 	void Change_PW_func(const string& ch_login_pw, const int& user_id) {
 		unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("UPDATE User SET login_pw = ? WHERE user_id = ?") };
-		// user_id = ? �� �ڽ��� �����θ� login_pw�� UPDATE
+		// user_id = ? 로 자신의 것으로만 login_pw를 UPDATE
 		pstmt->setString(1, ch_login_pw);
 		pstmt->setInt(2, user_id);
 		pstmt->executeUpdate();
 	}
 
-	// ���� ��й�ȣ�� DB�� ��й�ȣ�� ��ġ����
+
+	// 현재 비밀번호가 DB의 비밀번호와 일치여부
 	bool Is_pw_equal_DB(const string& plogin_pw, const int& user_id) {
-		
-		//���� ó��
+
+		//예외 처리
+
 		if (!conn) {
 			cerr << "Database connection is not initialized!" << endl;
 			return -1;
 		}
 		try {
-			// ������ ���̽����� �ش� user_id�� login_pw�� �����ͼ�
+
+			// 데이터 베이스에서 해당 user_id의 login_pw를 가져와서
 			unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("SELECT login_pw FROM User WHERE user_id = ?") };
 			pstmt->setInt(1, user_id);
 			unique_ptr<ResultSet> res{ pstmt->executeQuery() };
 
-			// DB �����Ϳ� �Է��� ������ ���Ͽ��� Ȯ���Ͽ� ������ 1
+
+			// DB 데이터와 입력한 데이터 동일여부 확인하여 같으면 1
 			if (res->next()) {
 				string db_user_pw = res->getString("login_pw");
 				return db_user_pw == plogin_pw;
 			}
-			// �ٸ��� 0
+
+			// 다르면 0
+
 			else {
 				return false;
 			}
-		}
-		// ���� �߻� �� false ��ȯ
+
+		// 예외 발생 시 false 반환
+
 		catch (const SQLException& e) {
 			cerr << "SQL Error: " << e.what() << endl;
 		}
 		return false;
 	}
 
-	// ��� ȣ�� �Լ�
+
+	// 기능 호출 함수
+
 	void handle_Change_PW(const httplib::Request& req, httplib::Response& res) {
 		try {
 			json req_json = json::parse(req.body);

@@ -1,7 +1,12 @@
 #pragma once
 
 #include<iostream>
-#include<mysql/jdbc.h>
+#include <mysql_driver.h>
+#include <mysql_connection.h>
+#include <cppconn/connection.h>
+#include <cppconn/prepared_statement.h>
+#include <cppconn/resultset.h>
+//#include<mysql/jdbc.h>
 #include<windows.h>
 #include "DB_admin.hpp"
 #include <sstream>
