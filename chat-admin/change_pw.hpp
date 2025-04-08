@@ -70,40 +70,40 @@ public:
 				return false;
 			}
 
-		// 예외 발생 시 false 반환
+			// 예외 발생 시 false 반환
 
-		catch (const SQLException& e) {
-			cerr << "SQL Error: " << e.what() << endl;
-		}
-		return false;
-	}
-
-
-	// 기능 호출 함수
-
-	void handle_Change_PW(const httplib::Request& req, httplib::Response& res) {
-		try {
-			json req_json = json::parse(req.body);
-
-			string plogin_pw = req_json["plogin_pw"];
-			int user_id = req_json["user_id"];
-			string ch_login_pw = req_json["ch_login_pw"];
-
-			if (Is_pw_equal_DB(plogin_pw, user_id) == 1) {
-				Change_PW_func(ch_login_pw, user_id);
-				res.status = 200;
-				res.set_content(R"({"success": true, "message": "비밀번호가 변경되었습니다."})", "application/json");
-				//res.set_content("Change sucess", "text/plain");
+		} catch (const SQLException& e) {
+				cerr << "SQL Error: " << e.what() << endl;
 			}
-			else {
-				cout << "This PW is different from DB PW" << endl;
-				res.status = 400;
-				res.set_content(R"({"success": false, "message": "현재 비밀번호가 일치하지 않습니다."})", "application/json");
-				//res.set_content("Change failed", "text/plain");
+			return false;
+		}
+
+
+		// 기능 호출 함수
+
+		void handle_Change_PW(const httplib::Request & req, httplib::Response & res) {
+			try {
+				json req_json = json::parse(req.body);
+
+				string plogin_pw = req_json["plogin_pw"];
+				int user_id = req_json["user_id"];
+				string ch_login_pw = req_json["ch_login_pw"];
+
+				if (Is_pw_equal_DB(plogin_pw, user_id) == 1) {
+					Change_PW_func(ch_login_pw, user_id);
+					res.status = 200;
+					res.set_content(R"({"success": true, "message": "비밀번호가 변경되었습니다."})", "application/json");
+					//res.set_content("Change sucess", "text/plain");
+				}
+				else {
+					cout << "This PW is different from DB PW" << endl;
+					res.status = 400;
+					res.set_content(R"({"success": false, "message": "현재 비밀번호가 일치하지 않습니다."})", "application/json");
+					//res.set_content("Change failed", "text/plain");
+				}
+			}
+			catch (const SQLException& e) {
+				cout << "Change failed by exception" << e.what() << endl;
 			}
 		}
-		catch (const SQLException& e) {
-			cout << "Change failed by exception" << e.what() << endl;
-		}
-	}
 };

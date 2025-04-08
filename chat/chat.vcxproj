@@ -141,17 +141,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DB1111.hpp" />
     <ClCompile Include="main.cpp" />
-    <ClCompile Include="main1111.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chat_print.hpp" />
-    <ClInclude Include="chat_print1111.hpp" />
     <ClInclude Include="chat_room.hpp" />
-    <ClInclude Include="chat_room1111.hpp" />
     <ClInclude Include="chat_send.hpp" />
-    <ClInclude Include="chat_send1111.hpp" />
     <ClInclude Include="DB.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -80,6 +80,7 @@ public:
 
 	// 접속 시 참여자 데이터 redis로 전송
 	void on_user_join(const httplib::Request& req, httplib::Response& res) {
+		std::cout << "redis 포인터 상태: " << (redis ? "OK" : "nullptr") << std::endl;
 		json req_json = json::parse(req.body);
 		int user_id = req_json["user_id"];
 		string user_name = req_json["user_name"];
