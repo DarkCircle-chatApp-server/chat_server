@@ -1,50 +1,51 @@
-#pragma once
-#include <iostream>
-#include <mysql/jdbc.h>
-
-using namespace std;
-using namespace sql;
-
-#define SERVER_IP	"127.0.0.1:3306"
-#define USERNAME	"root"
-#define PASSWORD	"12345"
-#define DATABASE	"chat"
-
-class MySQLConnector {
-private:
-	string server;
-	string username;
-	string password;
-	string database;
-	Connection* conn;
-public:
-	MySQLConnector(const string& serv, const string& user, const string& passwd, const string& db)
-		: server(serv), username(user), password(passwd), database(db) {
-		try {
-			mysql::MySQL_Driver* driver = mysql::get_mysql_driver_instance();
-			conn = driver->connect(server, username, password);
-			conn->setSchema(database);
-			conn->setClientOption("OPT_RECONNECT", "true");  // ÀÚµ¿ Àç¿¬°á ¼³Á¤
-			cout << "MySQL Connection success" << endl;
-		}
-		catch (SQLException& e) {
-			cerr << "MySQL Connection failed" << e.what() << endl;
-		}
-		catch (exception& e) {
-			cerr << "Unknown error during MySQL connection: " << e.what() << endl;
-		}
-	}
-	// Æ÷ÀÎÅÍ conn ¹İÈ¯(´Ù¸¥ °´Ã¼¿¡¼­ MySQLConnectorÀÇ connÀ» »ç¿ëÇÏ±â À§ÇØ ¸¸µé¾úÀ½) 
-	Connection* getConnection() {
-		if (!conn) {
-			throw runtime_error("Database connection is not initialized or has failed.");
-		}
-		return conn;
-	}
-	~MySQLConnector() {
-		if (conn) {
-			cout << "MySQL Disconnect" << endl;
-			delete conn;
-		}
-	}
-};
+//#pragma once
+//#include <iostream>
+//#include <mysql/jdbc.h>
+//
+//using namespace std;
+//using namespace sql;
+//
+//#define SERVER_IP   "tcp://127.0.0.1:3306"
+//#define USERNAME   "root"
+//#define PASSWORD   "12345"
+//#define DATABASE   "chat"
+//
+//class MySQLConnector {
+//private:
+//    string server;
+//    string username;
+//    string password;
+//    string database;
+//    Connection* conn;
+//public:
+//    MySQLConnector(const string& serv, const string& user, const string& passwd, const string& db)
+//        : server(serv), username(user), password(passwd), database(db) {
+//        try {
+//            mysql::MySQL_Driver* driver = mysql::get_mysql_driver_instance();
+//            conn = driver->connect(server, username, password);
+//            conn->setSchema(database);
+//            conn->setClientOption("OPT_RECONNECT", "true");  // ìë™ ì¬ì—°ê²° ì„¤ì •
+//            cout << "MySQL Connection success" << endl;
+//        }
+//        catch (SQLException& e) {
+//            cerr << "MySQL Connection failed" << e.what() << endl;
+//        }
+//        catch (exception& e) {
+//            cerr << "Unknown error during MySQL connection: " << e.what() << endl;
+//        }
+//    }
+//    // í¬ì¸í„° conn ë°˜í™˜(ë‹¤ë¥¸ ê°ì²´ì—ì„œ MySQLConnectorì˜ connì„ ì‚¬ìš©í•˜ê¸° ìœ„í•´ ë§Œë“¤ì—ˆìŒ) 
+//    Connection* getConnection() {
+//        if (!conn) {
+//            throw runtime_error("Database connection is not initialized or has failed.");
+//        }
+//        return conn;
+//    }
+//    ~MySQLConnector() {
+//        if (conn) {
+//            conn->close();
+//            cout << "MySQL Disconnect" << endl;
+//            delete conn;
+//        }
+//    }
+//};

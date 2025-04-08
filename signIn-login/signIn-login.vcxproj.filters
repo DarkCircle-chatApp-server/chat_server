@@ -18,6 +18,9 @@
     <ClCompile Include="main.cpp">
       <Filter>소스 파일</Filter>
     </ClCompile>
+    <ClCompile Include="main111.cpp">
+      <Filter>소스 파일</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="test1.hpp">
@@ -30,6 +33,12 @@
       <Filter>헤더 파일</Filter>
     </ClInclude>
     <ClInclude Include="signinClass.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="DBmodule1.hpp">
+      <Filter>헤더 파일</Filter>
+    </ClInclude>
+    <ClInclude Include="signinClass11111.hpp">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>

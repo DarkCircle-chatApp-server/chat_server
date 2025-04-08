@@ -1,125 +1,124 @@
-#define NDEBUG
-#include "httplib.h"    // httplib Çì´õÆÄÀÏ Ãß°¡
-#include <iostream>
-#include "DBmodule.hpp"
-#include "signinClass.hpp"
-#include <Windows.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-//#include <nlohmann/json.hpp>  // JSON ÆÄ½ÌÀ» À§ÇÑ ¶óÀÌºê·¯¸®
-
-using namespace std;
-
-
-// ÇÊ¿äÇÑ ÇÔ¼öµéÀº Çì´õÆÄÀÏ¿¡ ¸¸µé±â
-// ÀÏ´Ü ÀüºÎ´Ù °£´ÜÇÑ GET ¿äÃ»À¸·Î¸¸ api¸¦ ¸¸µé¾î³ùÀ½. ±â´É¿¡ µû¶ó GET, POST, PUT, DELETE Áß ÀûÀıÇÑ ¸Ş¼­µå·Î º¯°æÇÒ °Í
-// rest api´Â url¿¡ Æ÷ÇÔµÈ ¿ä¼Òµé·Î µ¥ÀÌÅÍ¿¡ Á¢±ÙÇØ¾ßÇÔ
-// ¸Ş½ÃÁö Àü¼Û api ¿¹½Ã) /chat/1(useridÀÓ. µ¿ÀûÀ¸·Î ºÒ·¯¿Í¾ßÇÔ)/sendMessage
-// ÀÌ·±½ÄÀ¸·Î url¿¡ ¿ä¼ÒµéÀ» ³Ö¾î¼­ ÄÄÆÄÀÏ·¯°¡ ÀÎ½ÄÇÏ¿© Ã³¸®ÇÏµµ·Ï ¸¸µé¾î¾ßÇÔ
-// Áï svr.POST("/chat/{userid}/sendMessage", [](const httplib::Request& req, httplib::Response& res)) ÀÌ·±½ÄÀ¸·Î ¸Ş½ÃÁö Àü¼Û api¸¦ ¸¸µå´Â°ÅÀÓ
-// userid´Â mysql db µ¥ÀÌÅÍ ¶Ç´Â ·Î±×ÀÎ¼¼¼Ç¿¡¼­ °¡Á®¿Í¾ßÇÔ
-// ³ªµµ ¾ÆÁ÷ ÇÒ ÁÙ ¸ğ¸§. ´Ùµé ¿­½ÉÈ÷ ±¸±Û¸µÇØº¾½Ã´Ù...!
-
-// ÀÏ´Ü Áö±İ ÆíÀÇ»ó main.cpp¿¡ ÇÔ¼öµµ Á¤ÀÇ ÇØ³ùÀ½. ³ªÁß¿¡ Çì´õÆÄÀÏ·Î ¿Å°Ü¾ßÇÔ
-// Çì´õÆÄÀÏ ¿¹½Ã´Â Áö±İ ÀÌ ÇÁ·ÎÁ§Æ® ¾ÈÀÇ test1.hpp, test2.hpp Çì´õÆÄÀÏ È®ÀÎÇÒ °Í
-
-int main() {
-    OpenSSL_add_all_algorithms();
-    SSL_load_error_strings();
-    SSL_library_init();
-    SetConsoleOutputCP(CP_UTF8);    // ÄÜ¼Ö Ãâ·Â ÀÎÄÚµù. ÇÑ±ÛÀÔ·Â°ª ¿ŞÂÊ¿¡ u8 ºÙ¿©ÁÙ °Í
-    MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
-	auto connection = db.getConnection();
-
-	SignIn signin(connection);  // getConnection()¿¡¼­ ¹İÈ¯µÈ MySQLConnectorÀÇ connÀ» signin°´Ã¼¿¡ ÁÖÀÔ;
-    //SignIn signin(db.getConnection());  // getConnection()¿¡¼­ ¹İÈ¯µÈ MySQLConnectorÀÇ connÀ» signin°´Ã¼¿¡ ÁÖÀÔ
-    cout << "test start" << endl;
-    //signin.get_user_status("admin12345");
-
-    httplib::Server svr;    // httplib::Server °´Ã¼ »ı¼º
-
-    /*svr.Options("/login", [](const httplib::Request&, httplib::Response& res) {
-        res.set_header("Access-Control-Allow-Origin", "*");
-        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-        res.status = 204;
-    });
-    svr.Options("/signIn", [](const httplib::Request&, httplib::Response& res) {
-        res.set_header("Access-Control-Allow-Origin", "*");
-        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
-        res.status = 204;
-        });*/
-
-    // "/login" URL·Î µé¾î¿À´Â GET ¿äÃ»À» handleLogin ÇÔ¼ö·Î Ã³¸®
-    svr.Post("/login", [&](const httplib::Request& req, httplib::Response& res) {
-        signin.handle_login(req, res);
-    });
-    
-    svr.Post("/idCheck", [&](const httplib::Request& req, httplib::Response& res) {
-        signin.check_validation(req, res);
-    });
-
-    svr.Get("/statCheck/:login_id", [&](const httplib::Request& req, httplib::Response& res) {
-        signin.check_user_status(req, res);
-    });
-
-    svr.Get("/getName/:login_id", [&](const httplib::Request& req, httplib::Response& res) {
-        signin.show_name(req, res);
-    });
-
-    svr.Get("/showId/:login_id", [&](const httplib::Request& req, httplib::Response& res) {
-        signin.show_id(req, res);
-    });
-
-    // ¾ÆÀÌµğ Áßº¹ Ã¼Å©
-    /*svr.Post("/idCheck", [&](const httplib::Request& req, httplib::Response& res) {
-        cout << "Request received at /idCheck" << endl;
-        try {
-            if (!signin.check_validation(req, res)) {
-                cout << "ID already exists, 400 response sent" << endl;
-                return;
-            }
-            res.status = 200;
-            res.set_content("ID is available", "text/plain");
-            cout << "ID is available, 200 response sent" << endl;
-        }
-        catch (const std::exception& e) {
-            res.status = 500;
-            res.set_content("Internal Server Error: " + string(e.what()), "text/plain");
-            cerr << "Error: " << e.what() << endl;
-        }
-    });*/
-
-
-    // "/signIn" URL·Î µé¾î¿À´Â POST ¿äÃ»À» handleSignIn ÇÔ¼ö·Î Ã³¸®
-    // ¶÷´Ù½Ä ¾´ ÀÌÀ¯ : ¶÷´Ù ¾È¾²¸é signin.handleSignIn() ÀÌ·±½ÄÀ¸·Î ¿ÜºÎ °´Ã¼ ÇÔ¼ö¿¡ Á¢±Ù ¸øÇÑ´Ù°í ÇÔ..½Ã¹ß
-    // [&] : Ä¸Ã³ ¸®½ºÆ® - ÇöÀç ½ºÄÚÇÁÀÇ º¯¼öµéÀ» ÂüÁ¶ ¹æ½ÄÀ¸·Î Ä¸Ã³(¼³¸í¿¡ ÀÌ·¸°Ô ³ª¿ÍÀÖ´Âµ¥ ±×³É ¶÷´Ù½Ä ¾Õ¿¡ ºÙÀÌ´Â ÄÚµåÀÎµíÇÔ)
-    svr.Post("/signIn", [&](const httplib::Request& req, httplib::Response& res) {
-        //std::cout << "Request body: " << req.body << std::endl;
-        signin.handle_signIn(req, res);
-    });
-
-    // È¸¿ø Å»Åğ ¿äÃ»
-    svr.Put("/update2", [&](const httplib::Request& req, httplib::Response& res) {
-        cout << "call success" << endl;
-        signin.handle_delete(req, res);
-    });
-
-    // CORS ¼³Á¤(8080 Æ÷Æ®¿¡¼­ µé¾î¿À´Â ¿äÃ» Çã¿ë)
-    svr.set_default_headers({
-        { "Access-Control-Allow-Origin", "*" },     // ¸ğµç µµ¸ŞÀÎ¿¡¼­ Á¢±Ù Çã¿ë
-        { "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE" },
-        { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
-        });
-
-    // 5001¹ø Æ÷Æ®·Î µé¾î¿À´Â Å¬¶óÀÌ¾ğÆ® ¿äÃ» ¹ŞÀ½
-    std::cout << "Login Service running: http://localhost:8880" << std::endl;
-    std::cout << "SignIn Service running: http://localhost:8880" << std::endl;
-    svr.listen("0.0.0.0", 8880);
-
-    //svr.listen("0.0.0.0", 5002);
-
-    // return 0; ÇÏ¸é ¾È µÊ return ½ÇÇàµÇ¸é ÇÁ·Î±×·¥ Á¾·áµÊ. ¼­¹ö ½ÇÇàµÈ Ã¤·Î °è¼Ó À¯Áö. Á¾·á´Â ¿ì¸®°¡ ÇÊ¿äÇÒ ¶§ ÇØ¾ßÇÔ
-}
-
+// #define NDEBUG
+//#include "httplib.h"    // httplib í—¤ë”íŒŒì¼ ì¶”ê°€
+//#include <iostream>
+//#include "DBmodule.hpp"
+//#include "signinClass.hpp"
+//#include <Windows.h>
+//#include <openssl/ssl.h>
+//#include <openssl/err.h>
+//#include <nlohmann/json.hpp>  // JSON íŒŒì‹±ì„ ìœ„í•œ ë¼ì´ë¸ŒëŸ¬ë¦¬
+//
+//using namespace std;
+//
+//
+//// í•„ìš”í•œ í•¨ìˆ˜ë“¤ì€ í—¤ë”íŒŒì¼ì— ë§Œë“¤ê¸°
+//// ì¼ë‹¨ ì „ë¶€ë‹¤ ê°„ë‹¨í•œ GET ìš”ì²­ìœ¼ë¡œë§Œ apië¥¼ ë§Œë“¤ì–´ë†¨ìŒ. ê¸°ëŠ¥ì— ë”°ë¼ GET, POST, PUT, DELETE ì¤‘ ì ì ˆí•œ ë©”ì„œë“œë¡œ ë³€ê²½í•  ê²ƒ
+//// rest apiëŠ” urlì— í¬í•¨ëœ ìš”ì†Œë“¤ë¡œ ë°ì´í„°ì— ì ‘ê·¼í•´ì•¼í•¨
+//// ë©”ì‹œì§€ ì „ì†¡ api ì˜ˆì‹œ) /chat/1(useridì„. ë™ì ìœ¼ë¡œ ë¶ˆëŸ¬ì™€ì•¼í•¨)/sendMessage
+//// ì´ëŸ°ì‹ìœ¼ë¡œ urlì— ìš”ì†Œë“¤ì„ ë„£ì–´ì„œ ì»´íŒŒì¼ëŸ¬ê°€ ì¸ì‹í•˜ì—¬ ì²˜ë¦¬í•˜ë„ë¡ ë§Œë“¤ì–´ì•¼í•¨
+//// ì¦‰ svr.POST("/chat/{userid}/sendMessage", [](const httplib::Request& req, httplib::Response& res)) ì´ëŸ°ì‹ìœ¼ë¡œ ë©”ì‹œì§€ ì „ì†¡ apië¥¼ ë§Œë“œëŠ”ê±°ì„
+//// useridëŠ” mysql db ë°ì´í„° ë˜ëŠ” ë¡œê·¸ì¸ì„¸ì…˜ì—ì„œ ê°€ì ¸ì™€ì•¼í•¨
+//// ë‚˜ë„ ì•„ì§ í•  ì¤„ ëª¨ë¦„. ë‹¤ë“¤ ì—´ì‹¬íˆ êµ¬ê¸€ë§í•´ë´…ì‹œë‹¤...!
+//
+//// ì¼ë‹¨ ì§€ê¸ˆ í¸ì˜ìƒ main.cppì— í•¨ìˆ˜ë„ ì •ì˜ í•´ë†¨ìŒ. ë‚˜ì¤‘ì— í—¤ë”íŒŒì¼ë¡œ ì˜®ê²¨ì•¼í•¨
+//// í—¤ë”íŒŒì¼ ì˜ˆì‹œëŠ” ì§€ê¸ˆ ì´ í”„ë¡œì íŠ¸ ì•ˆì˜ test1.hpp, test2.hpp í—¤ë”íŒŒì¼ í™•ì¸í•  ê²ƒ
+//
+//int main() {
+//    OpenSSL_add_all_algorithms();
+//    SSL_load_error_strings();
+//    SSL_library_init();
+//    SetConsoleOutputCP(CP_UTF8);    // ì½˜ì†” ì¶œë ¥ ì¸ì½”ë”©. í•œê¸€ì…ë ¥ê°’ ì™¼ìª½ì— u8 ë¶™ì—¬ì¤„ ê²ƒ
+//    MySQLConnector db(SERVER_IP, USERNAME, PASSWORD, DATABASE);
+//    auto connection = db.getConnection();
+//
+//    SignIn signin(connection);  // getConnection()ì—ì„œ ë°˜í™˜ëœ MySQLConnectorì˜ connì„ signinê°ì²´ì— ì£¼ì…;
+//    //SignIn signin(db.getConnection());  // getConnection()ì—ì„œ ë°˜í™˜ëœ MySQLConnectorì˜ connì„ signinê°ì²´ì— ì£¼ì…
+//    cout << "test start" << endl;
+//    //signin.get_user_status("admin12345");
+//
+//    httplib::Server svr;    // httplib::Server ê°ì²´ ìƒì„±
+//
+//    /*svr.Options("/login", [](const httplib::Request&, httplib::Response& res) {
+//        res.set_header("Access-Control-Allow-Origin", "*");
+//        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+//        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+//        res.status = 204;
+//    });
+//    svr.Options("/signIn", [](const httplib::Request&, httplib::Response& res) {
+//        res.set_header("Access-Control-Allow-Origin", "*");
+//        res.set_header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+//        res.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+//        res.status = 204;
+//        });*/
+//
+//        // "/login" URLë¡œ ë“¤ì–´ì˜¤ëŠ” GET ìš”ì²­ì„ handleLogin í•¨ìˆ˜ë¡œ ì²˜ë¦¬
+//    svr.Post("/login", [&](const httplib::Request& req, httplib::Response& res) {
+//        signin.handle_login(req, res);
+//        });
+//
+//    svr.Post("/idCheck", [&](const httplib::Request& req, httplib::Response& res) {
+//        signin.check_validation(req, res);
+//        });
+//
+//    svr.Get("/statCheck/:login_id", [&](const httplib::Request& req, httplib::Response& res) {
+//        signin.check_user_status(req, res);
+//        });
+//
+//    svr.Get("/getName/:login_id", [&](const httplib::Request& req, httplib::Response& res) {
+//        signin.show_name(req, res);
+//        });
+//
+//    svr.Get("/showId/:login_id", [&](const httplib::Request& req, httplib::Response& res) {
+//        signin.show_id(req, res);
+//        });
+//
+//    // ì•„ì´ë”” ì¤‘ë³µ ì²´í¬
+//    /*svr.Post("/idCheck", [&](const httplib::Request& req, httplib::Response& res) {
+//        cout << "Request received at /idCheck" << endl;
+//        try {
+//            if (!signin.check_validation(req, res)) {
+//                cout << "ID already exists, 400 response sent" << endl;
+//                return;
+//            }
+//            res.status = 200;
+//            res.set_content("ID is available", "text/plain");
+//            cout << "ID is available, 200 response sent" << endl;
+//        }
+//        catch (const std::exception& e) {
+//            res.status = 500;
+//            res.set_content("Internal Server Error: " + string(e.what()), "text/plain");
+//            cerr << "Error: " << e.what() << endl;
+//        }
+//    });*/
+//
+//
+//    // "/signIn" URLë¡œ ë“¤ì–´ì˜¤ëŠ” POST ìš”ì²­ì„ handleSignIn í•¨ìˆ˜ë¡œ ì²˜ë¦¬
+//    // ëŒë‹¤ì‹ ì“´ ì´ìœ  : ëŒë‹¤ ì•ˆì“°ë©´ signin.handleSignIn() ì´ëŸ°ì‹ìœ¼ë¡œ ì™¸ë¶€ ê°ì²´ í•¨ìˆ˜ì— ì ‘ê·¼ ëª»í•œë‹¤ê³  í•¨..ì‹œë°œ
+//    // [&] : ìº¡ì²˜ ë¦¬ìŠ¤íŠ¸ - í˜„ì¬ ìŠ¤ì½”í”„ì˜ ë³€ìˆ˜ë“¤ì„ ì°¸ì¡° ë°©ì‹ìœ¼ë¡œ ìº¡ì²˜(ì„¤ëª…ì— ì´ë ‡ê²Œ ë‚˜ì™€ìˆëŠ”ë° ê·¸ëƒ¥ ëŒë‹¤ì‹ ì•ì— ë¶™ì´ëŠ” ì½”ë“œì¸ë“¯í•¨)
+//    svr.Post("/signIn", [&](const httplib::Request& req, httplib::Response& res) {
+//        //std::cout << "Request body: " << req.body << std::endl;
+//        signin.handle_signIn(req, res);
+//        });
+//
+//    // íšŒì› íƒˆí‡´ ìš”ì²­
+//    svr.Put("/update2", [&](const httplib::Request& req, httplib::Response& res) {
+//        cout << "call success" << endl;
+//        signin.handle_delete(req, res);
+//        });
+//
+//    // CORS ì„¤ì •(8080 í¬íŠ¸ì—ì„œ ë“¤ì–´ì˜¤ëŠ” ìš”ì²­ í—ˆìš©)
+//    svr.set_default_headers({
+//        { "Access-Control-Allow-Origin", "*" },     // ëª¨ë“  ë„ë©”ì¸ì—ì„œ ì ‘ê·¼ í—ˆìš©
+//        { "Access-Control-Allow-Methods", "GET, POST, PUT, DELETE" },
+//        { "Access-Control-Allow-Headers", "Content-Type, Authorization" }
+//        });
+//
+//    // 5001ë²ˆ í¬íŠ¸ë¡œ ë“¤ì–´ì˜¤ëŠ” í´ë¼ì´ì–¸íŠ¸ ìš”ì²­ ë°›ìŒ
+//    std::cout << "Login Service running: http://localhost:8880" << std::endl;
+//    std::cout << "SignIn Service running: http://localhost:8880" << std::endl;
+//    svr.listen("0.0.0.0", 8880);
+//
+//    //svr.listen("0.0.0.0", 5002);
+//
+//    // return 0; í•˜ë©´ ì•ˆ ë¨ return ì‹¤í–‰ë˜ë©´ í”„ë¡œê·¸ë¨ ì¢…ë£Œë¨. ì„œë²„ ì‹¤í–‰ëœ ì±„ë¡œ ê³„ì† ìœ ì§€. ì¢…ë£ŒëŠ” ìš°ë¦¬ê°€ í•„ìš”í•  ë•Œ í•´ì•¼í•¨
+//}
