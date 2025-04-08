@@ -1,4 +1,4 @@
-// ÀÚ½ÅÀÇ ºñ¹Ð¹øÈ£ º¯°æ ±â´É
+// ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½Ð¹ï¿½È£ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 
 #pragma once
 #include<iostream>
@@ -13,7 +13,7 @@ using namespace std;
 using namespace sql;
 using json = nlohmann::json;
 
-// ºñ¹Ð¹øÈ£ º¯°æ Å¬·¡½º »ý¼º ¹× ±â´ÉÇÔ¼ö
+// ï¿½ï¿½Ð¹ï¿½È£ ï¿½ï¿½ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½Ô¼ï¿½
 class Change_PW {
 private:
 	string login_pw;
@@ -22,47 +22,47 @@ private:
 public:
 	Change_PW(Connection* connection) : conn(connection){}
 
-	// PW º¯°æ ±â´É
+	// PW ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	void Change_PW_func(const string& ch_login_pw, const int& user_id) {
 		unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("UPDATE User SET login_pw = ? WHERE user_id = ?") };
-		// user_id = ? ·Î ÀÚ½ÅÀÇ °ÍÀ¸·Î¸¸ login_pw¸¦ UPDATE
+		// user_id = ? ï¿½ï¿½ ï¿½Ú½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Î¸ï¿½ login_pwï¿½ï¿½ UPDATE
 		pstmt->setString(1, ch_login_pw);
 		pstmt->setInt(2, user_id);
 		pstmt->executeUpdate();
 	}
 
-	// ÇöÀç ºñ¹Ð¹øÈ£°¡ DBÀÇ ºñ¹Ð¹øÈ£¿Í ÀÏÄ¡¿©ºÎ
+	// ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½Ð¹ï¿½È£ï¿½ï¿½ DBï¿½ï¿½ ï¿½ï¿½Ð¹ï¿½È£ï¿½ï¿½ ï¿½ï¿½Ä¡ï¿½ï¿½ï¿½ï¿½
 	bool Is_pw_equal_DB(const string& plogin_pw, const int& user_id) {
 		
-		//¿¹¿Ü Ã³¸®
+		//ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 		if (!conn) {
 			cerr << "Database connection is not initialized!" << endl;
 			return -1;
 		}
 		try {
-			// µ¥ÀÌÅÍ º£ÀÌ½º¿¡¼­ ÇØ´ç user_idÀÇ login_pw¸¦ °¡Á®¿Í¼­
+			// ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ì½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½Ø´ï¿½ user_idï¿½ï¿½ login_pwï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½Í¼ï¿½
 			unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("SELECT login_pw FROM User WHERE user_id = ?") };
 			pstmt->setInt(1, user_id);
 			unique_ptr<ResultSet> res{ pstmt->executeQuery() };
 
-			// DB µ¥ÀÌÅÍ¿Í ÀÔ·ÂÇÑ µ¥ÀÌÅÍ µ¿ÀÏ¿©ºÎ È®ÀÎÇÏ¿© °°À¸¸é 1
+			// DB ï¿½ï¿½ï¿½ï¿½ï¿½Í¿ï¿½ ï¿½Ô·ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½Ï¿ï¿½ï¿½ï¿½ È®ï¿½ï¿½ï¿½Ï¿ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ 1
 			if (res->next()) {
 				string db_user_pw = res->getString("login_pw");
 				return db_user_pw == plogin_pw;
 			}
-			// ´Ù¸£¸é 0
+			// ï¿½Ù¸ï¿½ï¿½ï¿½ 0
 			else {
 				return false;
 			}
 		}
-		// ¿¹¿Ü ¹ß»ý ½Ã false ¹ÝÈ¯
+		// ï¿½ï¿½ï¿½ï¿½ ï¿½ß»ï¿½ ï¿½ï¿½ false ï¿½ï¿½È¯
 		catch (const SQLException& e) {
 			cerr << "SQL Error: " << e.what() << endl;
 		}
 		return false;
 	}
 
-	// ±â´É È£Ãâ ÇÔ¼ö
+	// ï¿½ï¿½ï¿½ È£ï¿½ï¿½ ï¿½Ô¼ï¿½
 	void handle_Change_PW(const httplib::Request& req, httplib::Response& res) {
 		try {
 			json req_json = json::parse(req.body);
@@ -73,11 +73,15 @@ public:
 
 			if (Is_pw_equal_DB(plogin_pw, user_id) == 1) {
 				Change_PW_func(ch_login_pw, user_id);
-				res.set_content("Change sucess", "text/plain");
+				res.status = 200;
+				res.set_content(R"({"success": true, "message": "ë¹„ë°€ë²ˆí˜¸ê°€ ë³€ê²½ë˜ì—ˆìŠµë‹ˆë‹¤."})", "application/json");
+				//res.set_content("Change sucess", "text/plain");
 			}
 			else {
 				cout << "This PW is different from DB PW" << endl;
-				res.set_content("Change failed", "text/plain");
+				res.status = 400;
+				res.set_content(R"({"success": false, "message": "í˜„ìž¬ ë¹„ë°€ë²ˆí˜¸ê°€ ì¼ì¹˜í•˜ì§€ ì•ŠìŠµë‹ˆë‹¤."})", "application/json");
+				//res.set_content("Change failed", "text/plain");
 			}
 		}
 		catch (const SQLException& e) {

@@ -76,8 +76,8 @@
     <IncludePath>C:\Dev\vcpkg\installed\x64-windows\include;C:\Program Files\mysql-connector-c++-9.2.0-winx64\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>C:\Dev\mysql-connector-c++-noinstall-1.1.11-winx64\include;C:\Dev\vcpkg\installed\x64-windows\include;$(IncludePath)</IncludePath>
-    <LibraryPath>C:\Dev\mysql-connector-c++-noinstall-1.1.11-winx64\lib;C:\Dev\vcpkg\installed\x64-windows\lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>C:\Program Files\mysql-connector-c++-noinstall-1.1.12-winx64\include;$(IncludePath)</IncludePath>
+    <LibraryPath>C:\Dev\vcpkg\installed\x64-windows\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -129,25 +129,30 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>C:\Dev\boost_1_87_0;C:\Dev\mysql-connector-c++-noinstall-1.1.11-winx64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\Program Files\mysql-connector-c++-noinstall-1.1.12-winx64\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>C:\Dev\mysql-connector-c++-noinstall-1.1.11-winx64\lib;C:\Dev\vcpkg\installed\x64-windows\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>redis++.lib;hiredis.lib;mysqlcppconn.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Program Files\mysql-connector-c++-noinstall-1.1.12-winx64\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>mysqlcppconn.lib;libssl.lib;libcrypto.lib;libmysql.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="DB.hpp" />
+    <ClCompile Include="DB1111.hpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="main1111.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="chat_print.hpp" />
+    <ClInclude Include="chat_print1111.hpp" />
     <ClInclude Include="chat_room.hpp" />
+    <ClInclude Include="chat_room1111.hpp" />
     <ClInclude Include="chat_send.hpp" />
+    <ClInclude Include="chat_send1111.hpp" />
+    <ClInclude Include="DB.hpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

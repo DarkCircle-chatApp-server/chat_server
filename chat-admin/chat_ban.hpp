@@ -1,4 +1,4 @@
-// Ã¤ÆÃ ¹ê ±â´É
+// Ã¤ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½
 
 #pragma once
 #include<iostream>
@@ -13,7 +13,7 @@ using namespace std;
 using namespace sql;
 using json = nlohmann::json;
 
-// ¹ê Å¬·¡½º »ý¼º ¹× ±â´É ÇÔ¼ö
+// ï¿½ï¿½ Å¬ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ ï¿½ï¿½ï¿½ ï¿½Ô¼ï¿½
 class User_ban {
 private:
 	int user_id;
@@ -21,49 +21,49 @@ private:
 public:
 	User_ban(Connection* connection) : conn(connection) {}
 
-	// ¹ê ±â´É
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½
 	void User_ban_func(const int& user_id) {
 		unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("UPDATE User SET user_status = 3 WHERE user_id = ?") };					
-		// user_idÀÇ status 3(Ã¤ÆÃ±ÝÁö)·Î
+		// user_idï¿½ï¿½ status 3(Ã¤ï¿½Ã±ï¿½ï¿½ï¿½)ï¿½ï¿½
 		pstmt->setInt(1, user_id);
 		pstmt->executeUpdate();
 	}
-	// ¹ê ÇØÁ¦ ±â´É
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½
 	void User_unban_func(const int& user_id) {
 		unique_ptr<PreparedStatement> pstmt{ conn->prepareStatement("UPDATE User SET user_status = 1 WHERE user_id = ?") };					
-		// user_idÀÇ status 1(ÀÏ¹Ý»óÅÂ)·Î
+		// user_idï¿½ï¿½ status 1(ï¿½Ï¹Ý»ï¿½ï¿½ï¿½)ï¿½ï¿½
 		pstmt->setInt(1, user_id);
 		pstmt->executeUpdate();
 	}
 
-	// ¹ê Ã³¸® ÇÔ¼ö
+	// ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Ô¼ï¿½
 	void handle_user_ban(const httplib::Request& req, httplib::Response& res) {
 		try {
 			json req_json = json::parse(req.body);
 
-			// json µ¥ÀÌÅÍ ÃßÃâ
+			// json ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			int user_id = req_json["user_id"];
 
-			// ¹ê Ã³¸®
+			// ï¿½ï¿½ Ã³ï¿½ï¿½
 			User_ban_func(user_id);
-			res.set_content("Ban sucess", "text/plain");		// ÀÀ´äÈ£Ãâ
+			res.set_content("Ban sucess", "text/plain");		// ï¿½ï¿½ï¿½ï¿½È£ï¿½ï¿½
 		}
 		catch (const SQLException& e) {
 			cout << "Ban failed" << e.what() << endl;
 		}
 	}
 
-	// ¹ê ÇØÁ¦ Ã³¸® ÇÔ¼ö
+	// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½ ï¿½Ô¼ï¿½
 	void handle_user_unban(const httplib::Request& req, httplib::Response& res) {
 		try {
 			json req_json = json::parse(req.body);
 
-			// json µ¥ÀÌÅÍ ÃßÃâ
+			// json ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 			int user_id = req_json["user_id"];
 
-			// ¹ê ÇØÁ¦ Ã³¸®
+			// ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ Ã³ï¿½ï¿½
 			User_unban_func(user_id);
-			res.set_content("Unban sucess", "text/plain");		// ÀÀ´äÈ£Ãâ
+			res.set_content("Unban sucess", "text/plain");		// ï¿½ï¿½ï¿½ï¿½È£ï¿½ï¿½
 		}
 		catch (const SQLException& e) {
 			cout << "Unban failed" << e.what() << endl;
