@@ -436,7 +436,7 @@ C:.
 
 ### #1 코드 리팩토링 - 소켓통신 수업 이후 Redis 대신 WebSocket, MQTT 활용
 
-### #2 CI/CD - 빌드 자동화 - 테스트 - 배포 파이프 라인 구축(Docker, Kubernetis, Github Action, Jenkins, AWS)
+### #2 CI/CD 파이프 라인 구축 - Docker, Kubernetis, Github Action, Jenkins, AWS EC2/S3/RDS 활용
 
 ### #3 미구현 기능 추가 - 메시지 검색, 마크다운 언어 인식, 사진 전송, 채팅방 개설 기능 추가
 
