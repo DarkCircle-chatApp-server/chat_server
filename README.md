@@ -5,7 +5,7 @@
 
 ***
 
-# 주제 선정 배경
+# :page_facing_up:주제 선정 배경
 ### 현재 문제점
 
 - 교육과정 공지 채팅방에 수업시간 채팅도 함께 올라오는 상황
@@ -27,7 +27,7 @@
 | <img src="https://github.com/user-attachments/assets/47cba1ea-59a7-4b18-a196-0e3ad2a75e44" width="100"/> | <img src="https://github.com/user-attachments/assets/23e22012-ae25-477c-8db2-0442cf3f67cc" width="100"/> | <img src="https://github.com/user-attachments/assets/67315a0e-d258-4b18-9ec0-ddc84fac7f37" width="100"/> | <img src="https://github.com/user-attachments/assets/aeaf6b2a-4b0c-493b-bd18-ae470ec7875e" width="100"/> | <img src="https://github.com/user-attachments/assets/3534a4f8-a71d-464e-a9cb-9b8a2ebc3532" width="100"/> |
 | [깃허브](https://github.com/talCSHN) | [깃허브](https://github.com/GhwangHo-Kwon) | [깃허브](https://github.com/CLIVEJACK) | [깃허브](https://github.com/pgh157) | [깃허브](https://github.com/phm0423) |
 ***
-# 개발 환경
+# :computer:개발 환경
 
 - **Server** : <img src="https://img.shields.io/badge/c++-00599C?style=for-the-badge&logo=c%2B%2B&logoColor=white"> <img src="https://img.shields.io/badge/mysql-4479A1?style=for-the-badge&logo=mysql&logoColor=white">  <img src="https://img.shields.io/badge/Redis-DC382D?style=for-the-badge&logo=Redis&logoColor=white"> <img src="https://img.shields.io/badge/docker-%230db7ed.svg?style=for-the-badge&logo=docker&logoColor=white">
 
@@ -37,14 +37,13 @@
 
 - **Libraries** : `httplib`, `mysqlcppconnector`, `Redis++`, `json.hpp`, `cpp-jwt`, `openssl`, `nlohmann`
 ***
-# 서비스 아키텍처
-
+# 🧱서비스 아키텍처
 
 <img src="https://github.com/user-attachments/assets/86f49a17-55bd-4254-b669-405439b40b63" width="700"/>
 
 ***
 
-# 중점 사항
+# 🎯중점 사항
 ### 1. Redis PUB/SUB 기반 실시간 메시지 처리
 
    - `Redis Publish/Subscribe` 기능을 활용하여 **실시간 메시지 송수신** 구현
@@ -103,7 +102,7 @@
    
    - 서버는 해당 `token`을 검증하여 **사용자 인증**
 ***
-# 프로젝트 작업 트리
+# :evergreen_tree:프로젝트 작업 트리
 ```shell
 Folder PATH listing
 Volume serial number is 4A02-284C
@@ -190,7 +189,7 @@ C:.
                 signIn-login.pdb
 ```
 ***
-# 역할 분담
+# 👥역할 분담
 ### - 박관호(팀장) - Backend / Frontend
 - 회원가입/로그인 서버
 - SSE 연결 서버
@@ -211,7 +210,7 @@ C:.
 
 **추후 리팩토링 작업하면서 본인이 맡지 않았던 기능도 직접 구현하고 개선시켜볼 것.** **필수!!** 
 ***
-# 개발 기간 및 작업 관리
+# 🗓️개발 기간 및 작업 관리
 
 ### 개발 기간
 
@@ -259,9 +258,9 @@ C:.
 <img src="https://github.com/user-attachments/assets/dfd8f5c5-c829-4d7d-97bf-1dfd0cc41e37" width="700"/>
 
 ***
-# 페이지별 기능
+# 📱페이지별 기능
 
-### [회원가입]
+### ➕[회원가입]
 
 - **초기화면인 로그인 페이지의 중앙 하단 회원가입 버튼 클릭시 회원가입 페이지 이동**
 
@@ -280,7 +279,7 @@ C:.
 ![회원가입](https://github.com/user-attachments/assets/9aafb660-05a3-4524-9794-dbc4585a48aa)
 ****
 
-### [로그인]
+### :lock:[로그인]
 
 - **회원가입한 ID / PW 데이터와 일치 시 로그인**
   - 불일치 시 로그인 실패
@@ -295,7 +294,7 @@ C:.
 ![로그인](https://github.com/user-attachments/assets/46bfe9fb-bf1f-47dc-8e16-fccebd3faded)
 ****
 
-### [마이페이지]
+### 🙋‍♂️[마이페이지]
 
 - **로그인 후 마이페이지 버튼 클릭 시 마이페이지 이동**
 
@@ -310,7 +309,7 @@ C:.
 ![마이페이지](https://github.com/user-attachments/assets/60a4b26f-8d7a-48ea-a17b-18aa296486a0)
 ****
 
-### [채팅]
+### 🗨️[채팅]
 
 - **로그인 후 채팅방 입장 버튼 클릭 시 채팅방 이동**
 
@@ -330,7 +329,7 @@ C:.
 ![채팅](https://github.com/user-attachments/assets/8640e5c0-62cb-41ca-87ec-adcc7d747265)
 ****
 
-### [관리자 권한]
+### 🗝️[관리자 권한]
 
 - **관리자 계정으로 로그인 후 강사 전용 페이지 버튼 클릭 시 관리자페이지 이동**
   - 현재 강사님 계정만 접속 가능
@@ -358,7 +357,7 @@ C:.
 
 ***
 
-# 트러블 슈팅
+# 🐞트러블 슈팅
 
 ### Redis -> MySQL 데이터 유실 문제
 
@@ -433,7 +432,7 @@ C:.
 
 ***
 
-# 향후 개선 계획
+# 🔜향후 개선 계획
 
 ### #1 코드 리팩토링 - 소켓통신 수업 이후 Redis 대신 WebSocket, MQTT 활용
 
