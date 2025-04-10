@@ -33,7 +33,7 @@
 
 - **Client** : <img src="https://img.shields.io/badge/react-61DAFB?style=for-the-badge&logo=react&logoColor=black"> <img src="https://img.shields.io/badge/javascript-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black">
 
-- **Tools** : <img src="https://img.shields.io/badge/Visual Studio-5C2D91?style=for-the-badge&logo=Visual Studio&logoColor=white"/> <img src="https://img.shields.io/badge/Visual Studio Code-007ACC?style=for-the-badge&logo=Visual Studio Code&logoColor=white"/> <img src="https://img.shields.io/badge/github-181717?style=for-the-badge&logo=github&logoColor=white"> <img src="https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white"> `vcpkg`
+- **Tools** : <img src="https://img.shields.io/badge/Visual Studio-5C2D91?style=flat-square&logo=Visual Studio&logoColor=white"/> <img src="https://img.shields.io/badge/Visual Studio Code-007ACC?style=for-the-badge&logo=Visual Studio Code&logoColor=white"/> <img src="https://img.shields.io/badge/github-181717?style=for-the-badge&logo=github&logoColor=white"> <img src="https://img.shields.io/badge/Discord-%235865F2.svg?style=for-the-badge&logo=discord&logoColor=white"> `vcpkg`
 
 - **Libraries** : `httplib`, `mysqlcppconnector`, `Redis++`, `json.hpp`, `cpp-jwt`, `openssl`, `nlohmann`
 ***
@@ -215,15 +215,15 @@ C:.
 
 ### 개발 기간
 
-- 전체 개발 기간 : 2025.03.26 ~ 2025.04.07
+- **전체 개발 기간** : 2025.03.26 ~ 2025.04.07
 
-- 프로젝트 설계 : 2025.03.26 ~ 2025.03.27
+- **프로젝트 설계** : 2025.03.26 ~ 2025.03.27
 
-- 기능 구현 : 2025.03.27 ~ 2025.04.05
+- **기능 구현** : 2025.03.27 ~ 2025.04.05
 
-- UI 구현 : 2025.03.29 ~ 2025.04.06
+- **UI 구현** : 2025.03.29 ~ 2025.04.06
 
-- 프로젝트 발표 : 2025.04.07
+- **프로젝트 발표** : 2025.04.07
 
 ### 협업 규칙 및 컨벤션
 
@@ -243,7 +243,7 @@ C:.
 
 ### Discord 활용
 
-- 공지사항, 레퍼런스, 회의록, 질문 및 이슈 공유
+- `공지사항`, `레퍼런스`, `회의록`, `질문 및 이슈 공유`
 
 <img src="https://github.com/user-attachments/assets/3206d7b2-31be-4ddf-aebd-da8b143f64a3" width="700"/>
 
@@ -362,17 +362,17 @@ C:.
 
 ### Redis -> MySQL 데이터 유실 문제
 
-- **문제 상황** : Redis에 캐싱된 메시지 데이터를 DB에 저장 후 캐시데이터 삭제가 이루어져야하는데, 메시지가 DB로 삽입되기 전에 삭제됨
+- **문제 상황** : Redis에 캐싱된 메시지 데이터를 DB에 저장 후 캐시데이터 삭제가 이루어져야하는데, **메시지가 DB로 삽입되기 전에 삭제됨**
 
-- **원인** : 트랜잭션 처리를 하지 않고 여러 동작들을 실행 -> 삽입이 실패했음에도 메시지 데이터 삭제 동작 수행
+- **원인** : 트랜잭션 처리를 하지 않고 여러 동작들을 실행 -> **삽입이 실패했음에도 메시지 데이터 삭제** 동작 수행
 
 - **해결 방법**
   - `setAutoCommit(false)`로 트랜잭션 시작
-  - Redis의 데이터를 하나 씩 읽고 DB로 INSERT 성공 시에만 `commit`
-  - 실패 시 rollback 처리 후 `check_s_data`로 복구
+  - Redis의 데이터를 하나 씩 읽고 DB로 INSERT **성공 시에만** `commit`
+  - 실패 시 `rollback` 처리 후 `check_s_data`로 복구
 
 - **결과**
-  - Redis 데이터는 DB 저장 성공 시에만 삭제되도록 처리되고 있음
+  - Redis 데이터는 DB 저장 **성공 시에만 삭제**되도록 처리되고 있음
   - 장애 상황에서도 메시지 손실 없이 안정적 데이터 이전 가능 
 
 <img src="https://github.com/user-attachments/assets/b0343a40-0669-4332-a9f8-bbf9f046ca3a" width="500"/>
@@ -383,7 +383,7 @@ C:.
 
 - **문제 상황** : 사용자 접속 증가 시 서버 응답 지연 및 충돌 발생
 
-- **원인** : 모든 사용자들의 Redis 서버 연결을 메인 스레드 하나로 처리
+- **원인** : 모든 사용자들의 Redis 서버 연결을 **메인 스레드 하나로 처리**
 
 - **해결 방법**
   - 유저 최초 접속 시 `Chat_send` 객체를 동적으로 생성
@@ -398,9 +398,9 @@ C:.
 
 ### Redis 메시지 중복 및 순서 꼬임 문제
 
-- **문제 상황** : 메시지 순서가 뒤섞이거나 중복 저장됨
+- **문제 상황** : 메시지 순서가 **뒤섞이거나 중복 저장됨**
 
-- **원인** : Redis로 메시지들이 고유 키 없이 임의의 순서대로 저장됨
+- **원인** : Redis로 메시지들이 **고유 키 없이** 임의의 순서대로 저장됨
 
 - **해결 방법**
   - `msg_id:N` 형태의 고유 키로 메시지 저장
@@ -417,14 +417,14 @@ C:.
 
 ### 멀티스레드 환경에서의 동시성 문제
 
-- **문제 상황** : 여러 사용자가 동시에 메시지를 보내면 충돌 발생
+- **문제 상황** : 여러 사용자가 **동시에** 메시지를 보내면 **충돌 발생**
 
 - **원인** : insert_chat() 함수 내 공유 연결객체에 대한 동시성 제어 부재
 
 - **해결 방법**
-  - 채팅방 접속한 유저별 독립적인 스레드 및 연결 객체 생성
+  - 채팅방 접속한 유저별 **독립적인 스레드 및 연결 객체 생성**
   - `std::mutex`로 MySQL 관련 코드에 `lock_guard`로 lock
-  - 한 동작에 한 스레드만 접근
+  - **한 동작에 한 스레드만** 접근
  
 - **결과**
   - 데이터 무결성 유지 및 서버 안정성 확보
